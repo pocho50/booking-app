@@ -6,7 +6,7 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "postinstall": "nuxt prepare && prisma generate",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck"
   },
@@ -14,8 +14,11 @@
     "@iconify-json/lucide": "^1.2.82",
     "@iconify-json/simple-icons": "^1.2.63",
     "@nuxt/ui": "^4.3.0",
+    "@prisma/adapter-better-sqlite3": "^7.2.0",
     "@prisma/client": "^7.2.0",
-    "nuxt": "^4.2.2"
+    "better-sqlite3": "^12.5.0",
+    "nuxt": "^4.2.2",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.12.1",

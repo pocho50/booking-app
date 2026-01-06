@@ -2,6 +2,17 @@
 export default defineNuxtConfig({
   modules: ["@nuxt/eslint", "@nuxt/ui"],
 
+  alias: {
+    "#prisma-client": new URL("./prisma/generated/client.js", import.meta.url)
+      .pathname,
+  },
+
+  vite: {
+    optimizeDeps: {
+      include: ["zod"],
+    },
+  },
+
   devtools: {
     enabled: true,
   },

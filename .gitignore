@@ -26,3 +26,5 @@ logs
 # Local SQLite database (Prisma)
 dev.db
 dev.db-*
+
+prisma/generated
