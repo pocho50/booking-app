@@ -20,3 +20,11 @@ model Client {
 
   @@map("clients")
 }
+
+model Resource {
+  id          String @id @default(uuid())
+  name        String
+  description String
+
+  @@map("resources")
+}
