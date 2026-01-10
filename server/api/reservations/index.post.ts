@@ -1,5 +1,8 @@
 import { createError, readValidatedBody, setResponseStatus } from "h3";
-import { createReservation } from "../../application/reservation/createReservation";
+import {
+  createReservation,
+  ReservationOverlapError,
+} from "../../application/reservation/createReservation";
 import type { ReservationCreateInput } from "../../../shared/types/reservation";
 import { reservationCreateSchemaWithClientRule } from "../../../shared/schemas/reservation";
 import { PrismaReservationRepository } from "../../infrastructure/prisma/PrismaReservationRepository";
@@ -18,12 +21,22 @@ export default defineEventHandler(async (event) => {
   const data: ReservationCreateInput = result.data;
 
   const repo = new PrismaReservationRepository();
-  const created = await createReservation(repo, data);
+  try {
+    const created = await createReservation(repo, data);
 
-  setResponseStatus(event, 201);
-  return {
-    id: created.id,
-    ...data,
-    observation: data.observation ?? null,
-  };
+    setResponseStatus(event, 201);
+    return {
+      id: created.id,
+      ...data,
+      observation: data.observation ?? null,
+    };
+  } catch (err) {
+    if (err instanceof ReservationOverlapError) {
+      throw createError({
+        statusCode: 409,
+        statusMessage: err.message,
+      });
+    }
+    throw err;
+  }
 });

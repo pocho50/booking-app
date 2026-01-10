@@ -3,7 +3,6 @@ import {
   createResource,
   type ResourceCreateInput,
 } from "../../services/resourceService";
-import ResourceForm from "../../components/Resource/ResourceForm.vue";
 
 const saving = ref(false);
 const toast = useToast();

@@ -49,8 +49,21 @@ const reservationBaseSchema = z.object({
     )
     .optional(),
   price: z.preprocess(
-    (v) => (typeof v === "number" ? v : Number(v)),
-    z.number().finite("Precio inválido").min(0, "El precio debe ser >= 0")
+    (v) => {
+      if (typeof v === "number") {
+        return String(v);
+      }
+      if (typeof v === "string") {
+        return v;
+      }
+      return "";
+    },
+    z
+      .string()
+      .min(1, "El precio es obligatorio")
+      .transform((v) => Number(v))
+      .refine((n) => Number.isFinite(n), "Precio inválido")
+      .refine((n) => n >= 0, "El precio debe ser >= 0")
   ),
   confirmed: z.preprocess(coerceBoolean, z.boolean()).default(false),
   active: z.preprocess(coerceBoolean, z.boolean()).default(true),
@@ -75,6 +88,26 @@ export const reservationCreateSchema = reservationBaseSchema.superRefine(
     }
   }
 );
+
+export const reservationCreateFormSchema = reservationBaseSchema
+  .omit({ id_resource: true })
+  .superRefine((data, ctx) => {
+    if (data.start_date && data.end_date && data.start_date > data.end_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "La fecha hasta no puede ser menor que la fecha desde",
+        path: ["end_date"],
+      });
+    }
+
+    if (data.active !== false && !data.id_client) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "El cliente es obligatorio",
+        path: ["id_client"],
+      });
+    }
+  });
 
 export const reservationUpdateSchema = reservationBaseSchema
   .partial()
@@ -102,3 +135,7 @@ export const reservationCreateSchemaWithClientRule = reservationCreateSchema;
 
 export type ReservationCreateSchema = z.output<typeof reservationCreateSchema>;
 export type ReservationUpdateSchema = z.output<typeof reservationUpdateSchema>;
+
+export type ReservationCreateFormSchema = z.output<
+  typeof reservationCreateFormSchema
+>;

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import ReservationForm from "../components/Reservation/ReservationForm.vue";
 import { createReservation } from "../services/reservationService";
 import type { ReservationCreateInput } from "../../shared/types/reservation";
-import { listResources, type ResourceDto } from "../services/resourceService";
+import {
+  listCalendarResources,
+  type CalendarResourceDto,
+} from "../services/calendarService";
 type CalendarReservation = {
   id?: string;
   startDate?: string;
@@ -28,7 +29,6 @@ type AvailableDayClickPayload = {
 };
 
 const pad = (n: number) => String(n).padStart(2, "0");
-const toIso = (y: number, m: number, d: number) => `${y}-${pad(m)}-${pad(d)}`;
 
 const today = new Date();
 const month = ref(today.getMonth() + 1);
@@ -40,13 +40,17 @@ const {
   pending: resourcesPending,
   error: resourcesError,
   refresh: refreshResources,
-} = useAsyncData<ResourceDto[]>("resources-calendar", () => listResources());
+} = useAsyncData<CalendarResourceDto[]>(
+  "calendar-resources",
+  () => listCalendarResources({ month: month.value, year: year.value }),
+  { watch: [month, year] }
+);
 
 const resources = computed<CalendarResource[]>(() => {
   return (resourcesData.value ?? []).map((r) => ({
     id: r.id,
     name: r.name,
-    reservations: [],
+    reservations: r.reservations ?? [],
   }));
 });
 

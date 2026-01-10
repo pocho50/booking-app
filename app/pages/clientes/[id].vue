@@ -4,7 +4,6 @@ import {
   updateClient,
   type ClientDto,
 } from "../../services/clientService";
-import ClientForm from "../../components/Client/ClientForm.vue";
 import type { ClientCreateInput } from "../../../shared/types/client";
 
 const route = useRoute();

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
-import AppDatePicker from "../App/AppDatePicker.vue";
-import ClientForm from "../Client/ClientForm.vue";
+import {
+  reservationCreateFormSchema,
+  type ReservationCreateFormSchema,
+} from "../../../shared/schemas/reservation";
 import {
   createClient,
   type ClientCreateInput,
@@ -67,8 +69,12 @@ const clientOptions = computed(() =>
   }))
 );
 
+const reservationFormSchema = reservationCreateFormSchema;
+
+type ReservationFormSchema = ReservationCreateFormSchema;
+
 const state = reactive<{
-  clientId?: string;
+  id_client?: string;
   start_date?: string;
   end_date?: string;
   observation?: string;
@@ -76,7 +82,7 @@ const state = reactive<{
   confirmed?: boolean;
   active?: boolean;
 }>({
-  clientId: undefined,
+  id_client: undefined,
   start_date: undefined,
   end_date: undefined,
   observation: undefined,
@@ -98,7 +104,7 @@ watch(
   () => state.active,
   (value) => {
     if (value === false) {
-      state.clientId = undefined;
+      state.id_client = undefined;
       state.confirmed = false;
     }
   }
@@ -118,32 +124,14 @@ watch(
   { immediate: true }
 );
 
-function onSubmit(
-  event: FormSubmitEvent<{
-    clientId?: string;
-    start_date?: string;
-    end_date?: string;
-    observation?: string;
-    price?: number;
-    confirmed?: boolean;
-    active?: boolean;
-  }>
-) {
+function onSubmit(event: FormSubmitEvent<ReservationFormSchema>) {
   const start_date = event.data.start_date;
   const end_date = event.data.end_date;
   const price = event.data.price;
   const active = event.data.active ?? true;
   const confirmed = event.data.confirmed ?? false;
 
-  const clientId = active ? event.data.clientId ?? null : null;
-
-  if (!start_date || !end_date || typeof price !== "number") {
-    return;
-  }
-
-  if (active && !clientId) {
-    return;
-  }
+  const clientId = active ? event.data.id_client ?? null : null;
 
   emit("submit", {
     clientId,
@@ -165,7 +153,7 @@ async function onCreateClientSubmit(data: ClientCreateInput) {
     creatingClient.value = true;
     const created = await createClient(data);
     await refreshClients();
-    state.clientId = created.id;
+    state.id_client = created.id;
     clientDrawerOpen.value = false;
 
     toast.add({
@@ -206,6 +194,7 @@ const resourceName = computed(
     <UForm
       v-else
       :id="props.formId"
+      :schema="reservationFormSchema"
       :state="state"
       class="space-y-5"
       @submit="onSubmit"
@@ -216,15 +205,16 @@ const resourceName = computed(
             <div class="flex-1">
               <UFormField
                 label="Cliente"
-                name="clientId"
+                name="id_client"
                 :required="!isMaintenanceBlock"
               >
-                <USelect
-                  v-model="state.clientId"
+                <USelectMenu
+                  v-model="state.id_client"
                   :items="clientOptions"
                   value-key="value"
                   :loading="clientsPending"
-                  placeholder="Selecciona un cliente"
+                  :search-input="{ placeholder: 'Buscar...' }"
+                  placeholder="Seleccionar cliente..."
                   :disabled="isMaintenanceBlock"
                   class="w-full"
                 />

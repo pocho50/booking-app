@@ -5,8 +5,6 @@ import {
   updateResource,
   type ResourceDto,
 } from "../../services/resourceService";
-import ResourceForm from "../../components/Resource/ResourceForm.vue";
-import AppConfirmModal from "../../components/App/AppConfirmModal.vue";
 import type { ResourceCreateInput } from "../../../shared/types/resource";
 
 const route = useRoute();

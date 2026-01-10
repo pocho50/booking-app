@@ -4,7 +4,6 @@ import {
   listResources,
   type ResourceDto,
 } from "../../services/resourceService";
-import AppConfirmModal from "../../components/App/AppConfirmModal.vue";
 
 const {
   data: resourcesData,

@@ -5,6 +5,7 @@ import type {
 } from "../../../shared/types/reservation";
 import type { ReservationRepository } from "../../domain/reservation/ReservationRepository";
 import { prisma } from "../../utils/db";
+import { isoDateToLocalDate } from "../../utils/date";
 
 function toDomainReservation(dbReservation: any): Reservation {
   return {
@@ -20,16 +21,32 @@ function toDomainReservation(dbReservation: any): Reservation {
   };
 }
 
-function isoToLocalDate(value: string) {
-  return new Date(`${value}T00:00:00`);
-}
-
 export class PrismaReservationRepository implements ReservationRepository {
+  async hasOverlap(params: {
+    resourceId: string;
+    startDate: string;
+    endDate: string;
+  }): Promise<boolean> {
+    const startDate = isoDateToLocalDate(params.startDate);
+    const endDate = isoDateToLocalDate(params.endDate);
+
+    const overlap = await prisma.reservation.findFirst({
+      where: {
+        id_resource: params.resourceId,
+        start_date: { lte: endDate },
+        end_date: { gte: startDate },
+      },
+      select: { id: true },
+    });
+
+    return Boolean(overlap);
+  }
+
   async create(data: ReservationCreateInput): Promise<Reservation> {
     const created = await prisma.reservation.create({
       data: {
-        start_date: isoToLocalDate(data.start_date),
-        end_date: isoToLocalDate(data.end_date),
+        start_date: isoDateToLocalDate(data.start_date),
+        end_date: isoDateToLocalDate(data.end_date),
         id_resource: data.id_resource,
         id_client: data.active === false ? null : data.id_client,
         observation: data.observation ?? null,
@@ -47,9 +64,9 @@ export class PrismaReservationRepository implements ReservationRepository {
       where: { id },
       data: {
         start_date: data.start_date
-          ? isoToLocalDate(data.start_date)
+          ? isoDateToLocalDate(data.start_date)
           : undefined,
-        end_date: data.end_date ? isoToLocalDate(data.end_date) : undefined,
+        end_date: data.end_date ? isoDateToLocalDate(data.end_date) : undefined,
         id_resource: data.id_resource,
         id_client:
           data.active === false
