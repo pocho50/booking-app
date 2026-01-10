@@ -13,6 +13,8 @@ type Props = {
   submitLabel?: string;
   cancelTo?: string;
   loading?: boolean;
+  formId?: string;
+  showActions?: boolean;
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -20,6 +22,8 @@ const props = withDefaults(defineProps<Props>(), {
   submitLabel: "Guardar",
   cancelTo: undefined,
   loading: false,
+  formId: undefined,
+  showActions: true,
 });
 
 const emit = defineEmits<{
@@ -61,6 +65,7 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
   <UForm
     :schema="clientCreateSchema"
     :state="state"
+    :id="props.formId"
     class="space-y-6"
     @submit="onSubmit"
   >
@@ -136,6 +141,7 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
     </div>
 
     <div
+      v-if="props.showActions"
       class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end"
     >
       <UButton v-if="cancelTo" color="neutral" variant="outline" :to="cancelTo">

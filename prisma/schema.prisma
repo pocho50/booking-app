@@ -18,6 +18,8 @@ model Client {
   state     String
   phone     String
 
+  reservations Reservation[]
+
   @@map("clients")
 }
 
@@ -26,5 +28,25 @@ model Resource {
   name        String
   description String
 
+  reservations Reservation[]
+
   @@map("resources")
+}
+
+model Reservation {
+  id           String   @id @default(uuid())
+  start_date   DateTime
+  end_date     DateTime
+  id_resource  String
+  id_client    String?
+  observation  String?
+  price        Float
+
+  confirmed Boolean @default(false)
+  active    Boolean @default(true)
+
+  resource Resource @relation(fields: [id_resource], references: [id])
+  client   Client?  @relation(fields: [id_client], references: [id])
+
+  @@map("reservations")
 }

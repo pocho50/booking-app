@@ -123,24 +123,24 @@ function dateToDdMmYyyy(d) {
 }
 
 function getReservationTitle(r) {
-  if (r.activo === 0) {
+  if (r.active === 0) {
     return i18n.value.labels.notAvailable;
   }
-  return `${r.clienteNombre || ""} ${r.clienteApellido || ""}`.trim();
+  return `${r.clientFirstName || ""} ${r.clientLastName || ""}`.trim();
 }
 
 function buildPopoverLines(r) {
-  const start = parseIsoDate(r.fechaDesde);
-  const end = parseIsoDate(r.fechaHasta);
+  const start = parseIsoDate(r.startDate);
+  const end = parseIsoDate(r.endDate);
   const confirmed =
-    r.confirmado === 0 ? i18n.value.popover.no : i18n.value.popover.yes;
+    r.confirmed === 0 ? i18n.value.popover.no : i18n.value.popover.yes;
   const active =
-    r.activo === 0 ? i18n.value.popover.no : i18n.value.popover.yes;
+    r.active === 0 ? i18n.value.popover.no : i18n.value.popover.yes;
 
   return [
     {
       label: i18n.value.popover.client,
-      value: `${r.clienteNombre || ""} ${r.clienteApellido || ""}`.trim(),
+      value: `${r.clientFirstName || ""} ${r.clientLastName || ""}`.trim(),
     },
     { label: i18n.value.popover.from, value: dateToDdMmYyyy(start) },
     { label: i18n.value.popover.to, value: dateToDdMmYyyy(end) },
@@ -169,10 +169,10 @@ const resourcesWithGrid = computed(() => {
       dayMap.set(d, []);
     }
 
-    (resource.reservas || []).forEach((r, reservaIdx) => {
-      const reservationWithIdx = { ...r, _idx: reservaIdx };
-      const start = parseIsoDate(r.fechaDesde);
-      const end = parseIsoDate(r.fechaHasta);
+    (resource.reservations || []).forEach((r, idx) => {
+      const reservationWithIdx = { ...r, _idx: idx };
+      const start = parseIsoDate(r.startDate);
+      const end = parseIsoDate(r.endDate);
 
       for (let d = 1; d <= daysInMonth.value; d += 1) {
         const current = new Date(yearModel.value, monthModel.value - 1, d);
@@ -184,8 +184,8 @@ const resourcesWithGrid = computed(() => {
 
     const cells = days.value.map(({ day }) => {
       const reservations = dayMap.get(day) || [];
-      const hasInactive = reservations.some((r) => r.activo === 0);
-      const hasActive = reservations.some((r) => r.activo !== 0);
+      const hasInactive = reservations.some((r) => r.active === 0);
+      const hasActive = reservations.some((r) => r.active !== 0);
 
       return {
         day,
@@ -229,26 +229,26 @@ const occupancy = computed(() => {
   return `${((reservedDaysTotal * 100) / totalAvailableDays).toFixed(2)}%`;
 });
 
-async function reloadData(nextMes, nextYear) {
-  emit("month-change", { mes: nextMes, year: nextYear });
+async function reloadData(nextMonth, nextYear) {
+  emit("month-change", { month: nextMonth, year: nextYear });
 }
 
 async function goNext() {
-  const nextMes = monthModel.value === 12 ? 1 : monthModel.value + 1;
+  const nextMonth = monthModel.value === 12 ? 1 : monthModel.value + 1;
   const nextYear =
     monthModel.value === 12 ? yearModel.value + 1 : yearModel.value;
-  monthModel.value = nextMes;
+  monthModel.value = nextMonth;
   yearModel.value = nextYear;
-  await reloadData(nextMes, nextYear);
+  await reloadData(nextMonth, nextYear);
 }
 
 async function goPrev() {
-  const prevMes = monthModel.value === 1 ? 12 : monthModel.value - 1;
+  const prevMonth = monthModel.value === 1 ? 12 : monthModel.value - 1;
   const prevYear =
     monthModel.value === 1 ? yearModel.value - 1 : yearModel.value;
-  monthModel.value = prevMes;
+  monthModel.value = prevMonth;
   yearModel.value = prevYear;
-  await reloadData(prevMes, prevYear);
+  await reloadData(prevMonth, prevYear);
 }
 
 async function onSelectChange() {
@@ -257,28 +257,28 @@ async function onSelectChange() {
 
 function onAvailableCellClick(resourceId, day) {
   emit("available-day-click", {
-    idRecurso: resourceId,
-    dia: day,
-    mes: monthModel.value,
+    resourceId,
+    day,
+    month: monthModel.value,
     year: yearModel.value,
   });
 }
 
 function onReservationClick(reservation, resourceId) {
   emit("reservation-click", {
-    reservaId: reservation.id ?? null,
+    reservationId: reservation.id ?? null,
     reservation,
-    idRecurso: resourceId,
-    mes: monthModel.value,
+    resourceId,
+    month: monthModel.value,
     year: yearModel.value,
   });
 }
 
 function getReservationButtonColor(reservation) {
-  if (reservation.activo === 0) {
+  if (reservation.active === 0) {
     return "neutral";
   }
-  if (reservation.confirmado === 0) {
+  if (reservation.confirmed === 0) {
     return "error";
   }
   const parity =
@@ -287,7 +287,7 @@ function getReservationButtonColor(reservation) {
 }
 
 function getReservationButtonUi(reservation) {
-  if (reservation.activo === 0) {
+  if (reservation.active === 0) {
     return { leadingIcon: "!text-dimmed" };
   }
   return undefined;
@@ -347,7 +347,7 @@ function getReservationButtonUi(reservation) {
         <thead class="sticky top-0 z-10 bg-elevated/60">
           <tr>
             <th class="min-w-56 border border-default px-2 py-2 text-left">
-              Recurso
+              Resource
             </th>
             <th
               v-for="d in days"
@@ -376,7 +376,7 @@ function getReservationButtonUi(reservation) {
         <tbody>
           <tr v-for="resource in resourcesWithGrid" :key="resource.id">
             <td class="border border-default px-2 py-2 font-semibold">
-              {{ resource.nombre }}
+              {{ resource.name }}
             </td>
 
             <td
@@ -409,7 +409,7 @@ function getReservationButtonUi(reservation) {
                 <UPopover
                   :arrow="{ width: 20, height: 10 }"
                   v-for="r in cell.reservations"
-                  :key="r.id ?? `${r._idx}-${r.fechaDesde}-${r.fechaHasta}`"
+                  :key="r.id ?? `${r._idx}-${r.startDate}-${r.endDate}`"
                   :content="{
                     side: cell.day < 16 ? 'right' : 'left',
                     sideOffset: 8,
