@@ -1,25 +1,8 @@
 <script setup lang="ts">
 import { createReservation } from "../services/reservationService";
 import type { ReservationCreateInput } from "../../shared/types/reservation";
-import {
-  listCalendarResources,
-  type CalendarResourceDto,
-} from "../services/calendarService";
-type CalendarReservation = {
-  id?: string;
-  startDate?: string;
-  endDate?: string;
-  confirmed?: number;
-  active?: number;
-  clientFirstName?: string;
-  clientLastName?: string;
-};
-
-type CalendarResource = {
-  id: string | number;
-  name: string;
-  reservations?: CalendarReservation[];
-};
+import { listCalendarResources } from "../services/calendarService";
+import type { CalendarResourceDto } from "../../shared/types/calendar";
 
 type AvailableDayClickPayload = {
   resourceId: string | number;
@@ -46,16 +29,12 @@ const {
   { watch: [month, year] }
 );
 
-const resources = computed<CalendarResource[]>(() => {
-  return (resourcesData.value ?? []).map((r) => ({
-    id: r.id,
-    name: r.name,
-    reservations: r.reservations ?? [],
-  }));
-});
+const resources = computed<CalendarResourceDto[]>(
+  () => resourcesData.value ?? []
+);
 
 const reservationDrawerOpen = ref(false);
-const selectedReservationResource = ref<CalendarResource | null>(null);
+const selectedReservationResource = ref<CalendarResourceDto | null>(null);
 const selectedReservationIsoDate = ref<string | null>(null);
 
 const reservationDateLabel = computed(() => {

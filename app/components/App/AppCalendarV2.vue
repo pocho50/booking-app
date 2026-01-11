@@ -1,7 +1,70 @@
-<script setup>
+<script setup lang="ts">
 // TODO: Implement calendar logic here
 
-const defaultI18n = {
+import type {
+  CalendarReservationDto,
+  CalendarResourceDto,
+} from "../../../shared/types/calendar";
+
+type CalendarReservation = CalendarReservationDto & {
+  _idx?: number;
+};
+
+type CalendarResource = CalendarResourceDto;
+
+type CalendarCell = {
+  day: number;
+  reservations: CalendarReservation[];
+  isUnavailable: boolean;
+  isAvailable: boolean;
+};
+
+type CalendarResourceWithGrid = CalendarResource & {
+  cells: CalendarCell[];
+};
+
+type CalendarI18n = {
+  daysShort: string[];
+  months: string[];
+  labels: {
+    previous: string;
+    next: string;
+    details: string;
+    notAvailable: string;
+    loading: string;
+  };
+  popover: {
+    client: string;
+    from: string;
+    to: string;
+    confirmed: string;
+    active: string;
+    yes: string;
+    no: string;
+  };
+};
+
+type ReservationClickPayload = {
+  reservationId: string | null;
+  reservation: CalendarReservation;
+  resourceId: string;
+  month: number;
+  year: number;
+};
+
+type AvailableDayClickPayload = {
+  resourceId: string;
+  day: number;
+  month: number;
+  year: number;
+};
+
+type MonthChangePayload = {
+  month: number;
+  year: number;
+};
+
+const defaultI18n: CalendarI18n = {
   daysShort: ["DO", "LU", "MA", "MI", "JU", "VI", "SA"],
   months: [
     "Enero",
@@ -35,59 +98,48 @@ const defaultI18n = {
   },
 };
 
-const props = defineProps({
-  resources: {
-    type: Array,
-    default: () => [],
-  },
-  month: {
-    type: Number,
-    default: () => new Date().getMonth() + 1,
-  },
-  year: {
-    type: Number,
-    default: () => new Date().getFullYear(),
-  },
-  fromYear: {
-    type: Number,
-    default: undefined,
-  },
-  toYear: {
-    type: Number,
-    default: undefined,
-  },
-  i18n: {
-    type: Object,
-    default: () => ({}),
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
+type Props = {
+  resources?: CalendarResourceDto[];
+  month?: number;
+  year?: number;
+  fromYear?: number;
+  toYear?: number;
+  i18n?: Partial<CalendarI18n>;
+  loading?: boolean;
+};
+
+const props = withDefaults(defineProps<Props>(), {
+  resources: () => [] as CalendarResourceDto[],
+  month: () => new Date().getMonth() + 1,
+  year: () => new Date().getFullYear(),
+  fromYear: undefined,
+  toYear: undefined,
+  i18n: () => ({}),
+  loading: false,
 });
 
-const emit = defineEmits([
-  "update:month",
-  "update:year",
-  "month-change",
-  "reservation-click",
-  "available-day-click",
-]);
+const emit = defineEmits<{
+  "update:month": [value: number];
+  "update:year": [value: number];
+  "month-change": [payload: MonthChangePayload];
+  "reservation-click": [payload: ReservationClickPayload];
+  "available-day-click": [payload: AvailableDayClickPayload];
+}>();
 
-const i18n = computed(() => ({
+const i18n = computed<CalendarI18n>(() => ({
   ...defaultI18n,
   ...props.i18n,
   labels: { ...defaultI18n.labels, ...(props.i18n?.labels || {}) },
   popover: { ...defaultI18n.popover, ...(props.i18n?.popover || {}) },
 }));
 
-const monthModel = computed({
-  get: () => props.month,
+const monthModel = computed<number>({
+  get: () => props.month ?? new Date().getMonth() + 1,
   set: (value) => emit("update:month", value),
 });
 
-const yearModel = computed({
-  get: () => props.year,
+const yearModel = computed<number>({
+  get: () => props.year ?? new Date().getFullYear(),
   set: (value) => emit("update:year", value),
 });
 
@@ -99,7 +151,7 @@ const monthOptions = computed(() =>
 );
 
 const yearOptions = computed(() => {
-  const ys = [];
+  const ys: Array<{ label: string; value: number }> = [];
   for (let y = fromYearValue.value; y <= toYearValue.value; y += 1) {
     ys.push({ label: String(y), value: y });
   }
@@ -110,26 +162,30 @@ const daysInMonth = computed(() =>
   new Date(yearModel.value, monthModel.value, 0).getDate()
 );
 
-function parseIsoDate(value) {
-  const [y, m, d] = String(value).split("-").map(Number);
+function parseIsoDate(value: string) {
+  const parts = String(value).split("-").map(Number);
+  if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) {
+    return new Date(NaN);
+  }
+  const [y, m, d] = parts as [number, number, number];
   return new Date(y, m - 1, d);
 }
 
-function dateToDdMmYyyy(d) {
+function dateToDdMmYyyy(d: Date) {
   const dd = String(d.getDate()).padStart(2, "0");
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const yy = d.getFullYear();
   return `${dd}/${mm}/${yy}`;
 }
 
-function getReservationTitle(r) {
+function getReservationTitle(r: CalendarReservation) {
   if (r.active === 0) {
     return i18n.value.labels.notAvailable;
   }
   return `${r.clientFirstName || ""} ${r.clientLastName || ""}`.trim();
 }
 
-function buildPopoverLines(r) {
+function buildPopoverLines(r: CalendarReservation) {
   const start = parseIsoDate(r.startDate);
   const end = parseIsoDate(r.endDate);
   const confirmed =
@@ -150,49 +206,52 @@ function buildPopoverLines(r) {
 }
 
 const days = computed(() => {
-  const arr = [];
+  const arr: Array<{ day: number; weekdayShort: string; date: Date }> = [];
   for (let d = 1; d <= daysInMonth.value; d += 1) {
     const date = new Date(yearModel.value, monthModel.value - 1, d);
     arr.push({
       day: d,
-      weekdayShort: i18n.value.daysShort[date.getDay()],
+      weekdayShort: i18n.value.daysShort[date.getDay()] ?? "",
       date,
     });
   }
   return arr;
 });
 
-const resourcesWithGrid = computed(() => {
-  return (props.resources || []).map((resource) => {
-    const dayMap = new Map();
+const resourcesWithGrid = computed<CalendarResourceWithGrid[]>(() => {
+  return (props.resources || []).map((resource: CalendarResourceDto) => {
+    const dayMap = new Map<number, CalendarReservation[]>();
     for (let d = 1; d <= daysInMonth.value; d += 1) {
       dayMap.set(d, []);
     }
 
-    (resource.reservations || []).forEach((r, idx) => {
-      const reservationWithIdx = { ...r, _idx: idx };
-      const start = parseIsoDate(r.startDate);
-      const end = parseIsoDate(r.endDate);
+    (resource.reservations || []).forEach(
+      (r: CalendarReservationDto, idx: number) => {
+        const reservationWithIdx: CalendarReservation = { ...r, _idx: idx };
+        const start = parseIsoDate(r.startDate);
+        const end = parseIsoDate(r.endDate);
 
-      for (let d = 1; d <= daysInMonth.value; d += 1) {
-        const current = new Date(yearModel.value, monthModel.value - 1, d);
-        if (current >= start && current <= end) {
-          dayMap.get(d).push(reservationWithIdx);
+        for (let d = 1; d <= daysInMonth.value; d += 1) {
+          const current = new Date(yearModel.value, monthModel.value - 1, d);
+          if (current >= start && current <= end) {
+            dayMap.get(d)?.push(reservationWithIdx);
+          }
         }
       }
-    });
+    );
 
     const cells = days.value.map(({ day }) => {
       const reservations = dayMap.get(day) || [];
       const hasInactive = reservations.some((r) => r.active === 0);
       const hasActive = reservations.some((r) => r.active !== 0);
 
-      return {
+      const cell: CalendarCell = {
         day,
         reservations,
         isUnavailable: hasInactive,
         isAvailable: !hasActive && !hasInactive,
       };
+      return cell;
     });
 
     return { ...resource, cells };
@@ -208,8 +267,8 @@ const occupancy = computed(() => {
   let inactiveDaysTotal = 0;
   let reservedDaysTotal = 0;
 
-  resourcesWithGrid.value.forEach((r) => {
-    r.cells.forEach((c) => {
+  resourcesWithGrid.value.forEach((r: CalendarResourceWithGrid) => {
+    r.cells.forEach((c: CalendarCell) => {
       if (c.isUnavailable) {
         inactiveDaysTotal += 1;
         return;
@@ -229,7 +288,7 @@ const occupancy = computed(() => {
   return `${((reservedDaysTotal * 100) / totalAvailableDays).toFixed(2)}%`;
 });
 
-async function reloadData(nextMonth, nextYear) {
+async function reloadData(nextMonth: number, nextYear: number) {
   emit("month-change", { month: nextMonth, year: nextYear });
 }
 
@@ -255,7 +314,7 @@ async function onSelectChange() {
   await reloadData(monthModel.value, yearModel.value);
 }
 
-function onAvailableCellClick(resourceId, day) {
+function onAvailableCellClick(resourceId: string, day: number) {
   emit("available-day-click", {
     resourceId,
     day,
@@ -264,7 +323,10 @@ function onAvailableCellClick(resourceId, day) {
   });
 }
 
-function onReservationClick(reservation, resourceId) {
+function onReservationClick(
+  reservation: CalendarReservation,
+  resourceId: string
+) {
   emit("reservation-click", {
     reservationId: reservation.id ?? null,
     reservation,
@@ -274,7 +336,7 @@ function onReservationClick(reservation, resourceId) {
   });
 }
 
-function getReservationButtonColor(reservation) {
+function getReservationButtonColor(reservation: CalendarReservation) {
   if (reservation.active === 0) {
     return "neutral";
   }
@@ -286,7 +348,7 @@ function getReservationButtonColor(reservation) {
   return parity === 0 ? "primary" : "secondary";
 }
 
-function getReservationButtonUi(reservation) {
+function getReservationButtonUi(reservation: CalendarReservation) {
   if (reservation.active === 0) {
     return { leadingIcon: "!text-dimmed" };
   }

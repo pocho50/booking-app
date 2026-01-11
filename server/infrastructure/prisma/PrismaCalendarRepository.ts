@@ -1,7 +1,5 @@
-import type {
-  CalendarRepository,
-  CalendarResource,
-} from "../../domain/calendar/CalendarRepository";
+import type { CalendarRepository } from "../../domain/calendar/CalendarRepository";
+import type { CalendarResourceDto } from "../../../shared/types/calendar";
 import { prisma } from "../../utils/db";
 import { dateToIsoLocal } from "../../utils/date";
 
@@ -9,7 +7,7 @@ export class PrismaCalendarRepository implements CalendarRepository {
   async listResourcesWithReservations(params: {
     month: number;
     year: number;
-  }): Promise<CalendarResource[]> {
+  }): Promise<CalendarResourceDto[]> {
     const monthStart = new Date(params.year, params.month - 1, 1, 0, 0, 0);
     const monthEnd = new Date(params.year, params.month, 0, 23, 59, 59);
 
