@@ -149,6 +149,15 @@ const deleteDescription = computed(() => {
           <UButton color="neutral" variant="outline" @click="refresh()">
             Recargar
           </UButton>
+          <UButton
+            color="error"
+            variant="outline"
+            :loading="deleting"
+            :disabled="deleting || saving"
+            @click="requestDelete"
+          >
+            Eliminar
+          </UButton>
         </div>
       </div>
 
@@ -175,15 +184,6 @@ const deleteDescription = computed(() => {
         v-if="!pending && !error"
         class="flex items-center justify-end gap-2"
       >
-        <UButton
-          color="error"
-          variant="outline"
-          :loading="deleting"
-          :disabled="deleting || saving"
-          @click="requestDelete"
-        >
-          Eliminar
-        </UButton>
         <UButton
           color="neutral"
           variant="outline"
