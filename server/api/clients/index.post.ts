@@ -1,4 +1,3 @@
-import { createError, readValidatedBody, setResponseStatus } from "h3";
 import { createClient } from "../../application/client/createClient";
 import type { ClientCreateInput } from "../../../shared/types/client";
 import { clientCreateSchema } from "../../../shared/schemas/client";

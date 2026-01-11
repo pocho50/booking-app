@@ -1,4 +1,3 @@
-import { createError, getQuery } from "h3";
 import { listCalendarResources } from "../../application/calendar/listCalendarResources";
 import { PrismaCalendarRepository } from "../../infrastructure/prisma/PrismaCalendarRepository";
 

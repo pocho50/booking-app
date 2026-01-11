@@ -1,4 +1,3 @@
-import { createError, getRouterParam, readValidatedBody } from "h3";
 import { updateClient } from "../../application/client/updateClient";
 import type { ClientUpdateInput } from "../../../shared/types/client";
 import { clientUpdateSchema } from "../../../shared/schemas/client";

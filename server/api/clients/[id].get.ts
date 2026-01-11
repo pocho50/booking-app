@@ -1,4 +1,3 @@
-import { createError, getRouterParam } from "h3";
 import { getClientById } from "../../application/client/getClientById";
 import { PrismaClientRepository } from "../../infrastructure/prisma/PrismaClientRepository";
 

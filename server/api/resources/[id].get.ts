@@ -1,4 +1,3 @@
-import { createError, getRouterParam } from "h3";
 import { getResourceById } from "../../application/resource/getResourceById";
 import { PrismaResourceRepository } from "../../infrastructure/prisma/PrismaResourceRepository";
 

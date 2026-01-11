@@ -1,4 +1,3 @@
-import { createError, readValidatedBody, setResponseStatus } from "h3";
 import { createResource } from "../../application/resource/createResource";
 import type { ResourceCreateInput } from "../../../shared/types/resource";
 import { resourceCreateSchema } from "../../../shared/schemas/resource";

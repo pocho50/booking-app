@@ -1,4 +1,3 @@
-import { createError, getRouterParam, readValidatedBody } from "h3";
 import { updateResource } from "../../application/resource/updateResource";
 import type { ResourceUpdateInput } from "../../../shared/types/resource";
 import { resourceUpdateSchema } from "../../../shared/schemas/resource";
