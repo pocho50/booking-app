@@ -1,4 +1,5 @@
 import type { Client } from "../../domain/client/Client";
+import type { Client as PrismaClientModel } from "#prisma-client";
 import type {
   ClientCreateInput,
   ClientUpdateInput,
@@ -6,7 +7,7 @@ import type {
 import type { ClientRepository } from "../../domain/client/ClientRepository";
 import { prisma } from "../../utils/db";
 
-function toDomainClient(dbClient: any): Client {
+function toDomainClient(dbClient: PrismaClientModel): Client {
   return {
     id: dbClient.id,
     name: dbClient.name,

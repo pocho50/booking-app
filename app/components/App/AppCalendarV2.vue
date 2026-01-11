@@ -52,6 +52,8 @@ type ReservationClickPayload = {
   year: number;
 };
 
+type ReservationEditPayload = ReservationClickPayload;
+
 type AvailableDayClickPayload = {
   resourceId: string;
   day: number;
@@ -123,6 +125,7 @@ const emit = defineEmits<{
   "update:year": [value: number];
   "month-change": [payload: MonthChangePayload];
   "reservation-click": [payload: ReservationClickPayload];
+  "reservation-edit": [payload: ReservationEditPayload];
   "available-day-click": [payload: AvailableDayClickPayload];
 }>();
 
@@ -323,6 +326,19 @@ function onAvailableCellClick(resourceId: string, day: number) {
   });
 }
 
+function onReservationEdit(
+  reservation: CalendarReservation,
+  resourceId: string
+) {
+  emit("reservation-edit", {
+    reservationId: reservation.id ?? null,
+    reservation,
+    resourceId,
+    month: monthModel.value,
+    year: yearModel.value,
+  });
+}
+
 function onReservationClick(
   reservation: CalendarReservation,
   resourceId: string
@@ -491,8 +507,20 @@ function getReservationButtonUi(reservation: CalendarReservation) {
 
                   <template #content>
                     <div class="w-72 p-3 text-sm">
-                      <div class="mb-2 font-semibold">
-                        {{ getReservationTitle(r) }}
+                      <div class="mb-2 flex items-center justify-between gap-2">
+                        <div class="font-semibold">
+                          {{ getReservationTitle(r) }}
+                        </div>
+
+                        <UButton
+                          v-if="r.id"
+                          size="xs"
+                          color="neutral"
+                          variant="ghost"
+                          icon="i-lucide-pencil"
+                          :aria-label="'Editar'"
+                          @click.stop="onReservationEdit(r, resource.id)"
+                        />
                       </div>
                       <div class="space-y-1">
                         <div

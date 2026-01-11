@@ -1,4 +1,5 @@
 import type { Reservation } from "../../domain/reservation/Reservation";
+import type { Reservation as PrismaReservation } from "#prisma-client";
 import type {
   ReservationCreateInput,
   ReservationUpdateInput,
@@ -7,7 +8,7 @@ import type { ReservationRepository } from "../../domain/reservation/Reservation
 import { prisma } from "../../utils/db";
 import { isoDateToLocalDate } from "../../utils/date";
 
-function toDomainReservation(dbReservation: any): Reservation {
+function toDomainReservation(dbReservation: PrismaReservation): Reservation {
   return {
     id: dbReservation.id,
     start_date: dbReservation.start_date,
@@ -26,6 +27,7 @@ export class PrismaReservationRepository implements ReservationRepository {
     resourceId: string;
     startDate: string;
     endDate: string;
+    excludeReservationId?: string;
   }): Promise<boolean> {
     const startDate = isoDateToLocalDate(params.startDate);
     const endDate = isoDateToLocalDate(params.endDate);
@@ -33,6 +35,9 @@ export class PrismaReservationRepository implements ReservationRepository {
     const overlap = await prisma.reservation.findFirst({
       where: {
         id_resource: params.resourceId,
+        id: params.excludeReservationId
+          ? { not: params.excludeReservationId }
+          : undefined,
         start_date: { lte: endDate },
         end_date: { gte: startDate },
       },
@@ -40,6 +45,18 @@ export class PrismaReservationRepository implements ReservationRepository {
     });
 
     return Boolean(overlap);
+  }
+
+  async getById(id: string): Promise<Reservation | null> {
+    const found = await prisma.reservation.findUnique({
+      where: { id },
+    });
+
+    if (!found) {
+      return null;
+    }
+
+    return toDomainReservation(found);
   }
 
   async create(data: ReservationCreateInput): Promise<Reservation> {

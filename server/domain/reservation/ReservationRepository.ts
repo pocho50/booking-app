@@ -9,7 +9,9 @@ export interface ReservationRepository {
     resourceId: string;
     startDate: string;
     endDate: string;
+    excludeReservationId?: string;
   }): Promise<boolean>;
+  getById(id: string): Promise<Reservation | null>;
   create(data: ReservationCreateInput): Promise<Reservation>;
   update(id: string, data: ReservationUpdateInput): Promise<Reservation>;
   delete(id: string): Promise<void>;

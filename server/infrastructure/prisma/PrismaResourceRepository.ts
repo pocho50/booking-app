@@ -1,4 +1,5 @@
 import type { Resource } from "../../domain/resource/Resource";
+import type { Resource as PrismaResource } from "#prisma-client";
 import type {
   ResourceCreateInput,
   ResourceUpdateInput,
@@ -6,7 +7,7 @@ import type {
 import type { ResourceRepository } from "../../domain/resource/ResourceRepository";
 import { prisma } from "../../utils/db";
 
-function toDomainResource(dbResource: any): Resource {
+function toDomainResource(dbResource: PrismaResource): Resource {
   return {
     id: dbResource.id,
     name: dbResource.name,

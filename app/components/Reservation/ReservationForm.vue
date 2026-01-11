@@ -4,6 +4,7 @@ import {
   reservationCreateFormSchema,
   type ReservationCreateFormSchema,
 } from "../../../shared/schemas/reservation";
+import type { ReservationDto } from "../../../shared/types/reservation";
 import {
   createClient,
   type ClientCreateInput,
@@ -20,6 +21,7 @@ type Props = {
   resource: CalendarResource;
   dateLabel?: string;
   initialStartDate?: string;
+  initialValues?: Partial<ReservationDto>;
   formId?: string;
   loading?: boolean;
 };
@@ -27,6 +29,7 @@ type Props = {
 const props = withDefaults(defineProps<Props>(), {
   dateLabel: undefined,
   initialStartDate: undefined,
+  initialValues: undefined,
   formId: "reservation-form",
   loading: false,
 });
@@ -120,6 +123,28 @@ watch(
     if (!state.end_date) {
       state.end_date = value;
     }
+  },
+  { immediate: true }
+);
+
+watch(
+  () => props.initialValues,
+  (value) => {
+    if (!value) {
+      return;
+    }
+    if (typeof value.active === "boolean") {
+      state.active = value.active;
+    }
+    if (typeof value.confirmed === "boolean") {
+      state.confirmed = value.confirmed;
+    }
+
+    state.id_client = value.id_client ?? undefined;
+    state.start_date = value.start_date ?? state.start_date;
+    state.end_date = value.end_date ?? state.end_date;
+    state.observation = value.observation ?? undefined;
+    state.price = typeof value.price === "number" ? value.price : state.price;
   },
   { immediate: true }
 );

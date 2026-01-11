@@ -1,17 +1,6 @@
 <script setup lang="ts">
-import { createReservation } from "../services/reservationService";
-import type { ReservationCreateInput } from "../../shared/types/reservation";
 import { listCalendarResources } from "../services/calendarService";
 import type { CalendarResourceDto } from "../../shared/types/calendar";
-
-type AvailableDayClickPayload = {
-  resourceId: string | number;
-  day: number;
-  month: number;
-  year: number;
-};
-
-const pad = (n: number) => String(n).padStart(2, "0");
 
 const today = new Date();
 const month = ref(today.getMonth() + 1);
@@ -33,92 +22,26 @@ const resources = computed<CalendarResourceDto[]>(
   () => resourcesData.value ?? []
 );
 
-const reservationDrawerOpen = ref(false);
-const selectedReservationResource = ref<CalendarResourceDto | null>(null);
-const selectedReservationIsoDate = ref<string | null>(null);
-
-const reservationDateLabel = computed(() => {
-  if (!selectedReservationIsoDate.value) {
-    return undefined;
-  }
-  const [y, m, d] = selectedReservationIsoDate.value.split("-");
-  if (!y || !m || !d) {
-    return selectedReservationIsoDate.value;
-  }
-  return `${d}/${m}/${y}`;
+const {
+  reservationDrawerOpen,
+  selectedReservationResource,
+  selectedReservationIsoDate,
+  editingReservationId,
+  reservationInitialValues,
+  reservationLoading,
+  deleteModalOpen,
+  deleting,
+  reservationDateLabel,
+  drawerTitle,
+  onAvailableDayClick,
+  onReservationEdit,
+  onReservationSubmit,
+  onReservationCancel,
+  confirmDeleteReservation,
+} = useCalendarReservationDrawer({
+  resources,
+  refreshResources,
 });
-
-function parseIsoFromCalendarClick({
-  day,
-  month,
-  year: y,
-}: AvailableDayClickPayload) {
-  return `${y}-${pad(month)}-${pad(day)}`;
-}
-
-function onAvailableDayClick(payload: AvailableDayClickPayload) {
-  const found = (resources.value || []).find(
-    (r) => String(r.id) === String(payload.resourceId)
-  );
-  selectedReservationResource.value = found ?? null;
-
-  const iso = parseIsoFromCalendarClick(payload);
-  selectedReservationIsoDate.value = iso;
-  reservationDrawerOpen.value = true;
-}
-
-const toast = useToast();
-
-async function onReservationSubmit(data: {
-  clientId: string | null;
-  start_date: string;
-  end_date: string;
-  observation?: string;
-  price: number;
-  confirmed: boolean;
-  active: boolean;
-}) {
-  if (!selectedReservationResource.value) {
-    return;
-  }
-
-  try {
-    const payload: ReservationCreateInput = {
-      start_date: data.start_date,
-      end_date: data.end_date,
-      id_resource: String(selectedReservationResource.value.id),
-      id_client: data.active ? data.clientId : null,
-      observation: data.observation,
-      price: data.price,
-      confirmed: data.confirmed,
-      active: data.active,
-    };
-
-    await createReservation(payload);
-
-    toast.add({
-      title: "Reserva",
-      description: data.active
-        ? `Guardada • ${data.start_date} → ${data.end_date}`
-        : `Bloqueo guardado • ${data.start_date} → ${data.end_date}`,
-      color: "success",
-    });
-
-    reservationDrawerOpen.value = false;
-
-    await refreshResources();
-  } catch (err: any) {
-    toast.add({
-      title: "Error",
-      description: err?.data?.message || err?.message || "No se pudo guardar.",
-      color: "error",
-    });
-  }
-}
-
-function onReservationCancel() {
-  reservationDrawerOpen.value = false;
-}
 
 async function onMonthChange() {
   loading.value = true;
@@ -139,6 +62,7 @@ async function onMonthChange() {
       :loading="loading || resourcesPending"
       @month-change="onMonthChange"
       @available-day-click="onAvailableDayClick"
+      @reservation-edit="onReservationEdit"
     />
 
     <AppErrorMessage
@@ -150,7 +74,7 @@ async function onMonthChange() {
 
     <UDrawer
       v-model:open="reservationDrawerOpen"
-      title="Nueva reserva"
+      :title="drawerTitle"
       direction="right"
       :dismissible="true"
       :ui="{ content: 'w-[420px] sm:w-[520px] max-w-[90vw]' }"
@@ -161,6 +85,8 @@ async function onMonthChange() {
           :resource="selectedReservationResource"
           :date-label="reservationDateLabel"
           :initial-start-date="selectedReservationIsoDate ?? undefined"
+          :initial-values="reservationInitialValues ?? undefined"
+          :loading="reservationLoading"
           form-id="reservation-form"
           @submit="onReservationSubmit"
           @cancel="onReservationCancel"
@@ -169,6 +95,15 @@ async function onMonthChange() {
 
       <template #footer>
         <div class="flex items-center justify-end gap-2">
+          <UButton
+            v-if="editingReservationId"
+            color="error"
+            variant="outline"
+            :disabled="reservationLoading"
+            @click="deleteModalOpen = true"
+          >
+            Eliminar
+          </UButton>
           <UButton
             color="neutral"
             variant="outline"
@@ -180,5 +115,15 @@ async function onMonthChange() {
         </div>
       </template>
     </UDrawer>
+
+    <AppConfirmModal
+      v-model="deleteModalOpen"
+      title="Eliminar reserva"
+      description="¿Eliminar esta reserva? Esta acción no se puede deshacer."
+      confirm-label="Eliminar"
+      confirm-color="error"
+      :loading="deleting"
+      @confirm="confirmDeleteReservation"
+    />
   </section>
 </template>
