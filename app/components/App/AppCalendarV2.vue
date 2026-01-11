@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// TODO: Implement calendar logic here
-
 import type {
   CalendarReservationDto,
   CalendarResourceDto,
@@ -37,6 +35,7 @@ type CalendarI18n = {
     client: string;
     from: string;
     to: string;
+    price: string;
     confirmed: string;
     active: string;
     yes: string;
@@ -93,6 +92,7 @@ const defaultI18n: CalendarI18n = {
     client: "Cliente",
     from: "Desde",
     to: "Hasta",
+    price: "Precio",
     confirmed: "Confirmado",
     active: "Activo",
     yes: "Sí",
@@ -203,6 +203,13 @@ function buildPopoverLines(r: CalendarReservation) {
     },
     { label: i18n.value.popover.from, value: dateToDdMmYyyy(start) },
     { label: i18n.value.popover.to, value: dateToDdMmYyyy(end) },
+    {
+      label: i18n.value.popover.price,
+      value: new Intl.NumberFormat("es-ES", {
+        style: "currency",
+        currency: "EUR",
+      }).format(r.price),
+    },
     { label: i18n.value.popover.confirmed, value: confirmed },
     { label: i18n.value.popover.active, value: active },
   ];

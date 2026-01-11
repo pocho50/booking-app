@@ -41,6 +41,7 @@ export class PrismaCalendarRepository implements CalendarRepository {
         endDate: dateToIsoLocal(res.end_date),
         confirmed: res.confirmed ? 1 : 0,
         active: res.active ? 1 : 0,
+        price: res.price,
         clientFirstName: res.client?.name,
         clientLastName: res.client?.last_name,
       })),
