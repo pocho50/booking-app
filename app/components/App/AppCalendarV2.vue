@@ -513,10 +513,14 @@ function getReservationButtonUi(reservation: CalendarReservation) {
                   />
 
                   <template #content>
-                    <div class="w-72 p-3 text-sm">
-                      <div class="mb-2 flex items-center justify-between gap-2">
-                        <div class="font-semibold">
-                          {{ getReservationTitle(r) }}
+                    <div class="w-96 p-5">
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                          <div
+                            class="truncate text-base font-semibold text-highlighted"
+                          >
+                            {{ getReservationTitle(r) }}
+                          </div>
                         </div>
 
                         <UButton
@@ -529,13 +533,76 @@ function getReservationButtonUi(reservation: CalendarReservation) {
                           @click.stop="onReservationEdit(r, resource.id)"
                         />
                       </div>
-                      <div class="space-y-1">
-                        <div
-                          v-for="line in buildPopoverLines(r)"
-                          :key="line.label"
-                        >
-                          <span class="font-semibold">{{ line.label }}:</span>
-                          <span> {{ line.value }}</span>
+
+                      <div
+                        class="mt-4 rounded-md border border-default bg-elevated/40 p-4"
+                      >
+                        <div class="flex items-center justify-between gap-3">
+                          <div class="text-sm text-muted">
+                            {{ i18n.popover.from }} → {{ i18n.popover.to }}
+                          </div>
+                          <div class="text-base font-semibold text-highlighted">
+                            {{
+                              new Intl.NumberFormat("es-ES", {
+                                style: "currency",
+                                currency: "EUR",
+                              }).format(r.price)
+                            }}
+                          </div>
+                        </div>
+                        <div class="mt-1 text-base">
+                          <span class="font-medium">
+                            {{ buildPopoverLines(r)[1]?.value }}
+                          </span>
+                          <span class="text-muted"> → </span>
+                          <span class="font-medium">
+                            {{ buildPopoverLines(r)[2]?.value }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="mt-4 grid gap-2 text-sm">
+                        <div class="flex items-center justify-between gap-3">
+                          <span class="text-muted">{{
+                            i18n.popover.client
+                          }}</span>
+                          <span class="truncate font-medium">{{
+                            `${r.clientFirstName || ""} ${
+                              r.clientLastName || ""
+                            }`.trim() || "-"
+                          }}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                          <span class="text-muted">{{
+                            i18n.popover.confirmed
+                          }}</span>
+                          <UBadge
+                            size="sm"
+                            variant="subtle"
+                            :color="r.confirmed === 0 ? 'warning' : 'success'"
+                          >
+                            {{
+                              r.confirmed === 0
+                                ? i18n.popover.no
+                                : i18n.popover.yes
+                            }}
+                          </UBadge>
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                          <span class="text-muted">{{
+                            i18n.popover.active
+                          }}</span>
+                          <UBadge
+                            size="sm"
+                            variant="subtle"
+                            :color="r.active === 0 ? 'neutral' : 'success'"
+                          >
+                            {{
+                              r.active === 0
+                                ? i18n.popover.no
+                                : i18n.popover.yes
+                            }}
+                          </UBadge>
                         </div>
                       </div>
                     </div>
