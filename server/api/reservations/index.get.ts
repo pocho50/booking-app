@@ -1,0 +1,26 @@
+import type { ReservationListItemDto } from "../../../shared/types/reservation";
+import { prisma } from "../../utils/db";
+import { dateToIsoLocal } from "../../utils/date";
+
+export default defineEventHandler(async () => {
+  const reservations = await prisma.reservation.findMany({
+    where: { active: true },
+    orderBy: { start_date: "desc" },
+    include: {
+      client: { select: { name: true, last_name: true } },
+      resource: { select: { name: true } },
+    },
+  });
+
+  const dto: ReservationListItemDto[] = reservations.map((r) => ({
+    id: r.id,
+    client: r.client ? `${r.client.name} ${r.client.last_name}`.trim() : "-",
+    resource: r.resource?.name ?? "-",
+    start_date: dateToIsoLocal(r.start_date),
+    end_date: dateToIsoLocal(r.end_date),
+    price: r.price,
+    confirmed: r.confirmed,
+  }));
+
+  return dto;
+});

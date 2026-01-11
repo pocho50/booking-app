@@ -1,39 +1,98 @@
 <script setup lang="ts">
 import { h, resolveComponent } from "vue";
 import type { TableColumn } from "@nuxt/ui";
-import { listClients, type ClientDto } from "../../services/clientService";
+import { listReservations } from "../../services/reservationService";
+import type { ReservationListItemDto } from "../../../shared/types/reservation";
+import { formatIsoDateTo } from "../../../shared/utils/dateFormat";
 import { useTableSearchPagination } from "../../composables/useTableSearchPagination";
 
 const UButton = resolveComponent("UButton");
+const UBadge = resolveComponent("UBadge");
 
 const {
-  data: clientsData,
+  data: reservationsData,
   pending,
   refresh,
   error,
-} = await useAsyncData<ClientDto[]>("clients", () => listClients());
+} = await useAsyncData<ReservationListItemDto[]>("reservations", () =>
+  listReservations()
+);
 
-const clients = computed(() => clientsData.value ?? []);
+const reservations = computed<ReservationListItemDto[]>(() =>
+  [...(reservationsData.value ?? [])].sort((a, b) =>
+    b.start_date.localeCompare(a.start_date)
+  )
+);
 
 const {
   search,
   pageSize,
   page,
-  filteredItems: filteredClients,
-  paginatedItems: paginatedClients,
+  filteredItems: filteredReservations,
+  paginatedItems: paginatedReservations,
   totalPages,
   pageSizeOptions,
-} = useTableSearchPagination<ClientDto>({
-  items: clients,
-  searchFields: (c) => [c.name, c.last_name, c.doc, c.email, c.phone],
+} = useTableSearchPagination<ReservationListItemDto>({
+  items: reservations,
+  searchFields: (r) => [
+    r.client,
+    r.resource,
+    r.start_date,
+    r.end_date,
+    r.price,
+  ],
 });
 
-const columns: TableColumn<ClientDto>[] = [
-  { accessorKey: "name", header: "Nombre" },
-  { accessorKey: "last_name", header: "Apellido" },
-  { accessorKey: "doc", header: "Doc" },
-  { accessorKey: "email", header: "Email" },
-  { accessorKey: "phone", header: "Teléfono" },
+const columns: TableColumn<ReservationListItemDto>[] = [
+  { accessorKey: "client", header: "Cliente" },
+  { accessorKey: "resource", header: "Recurso" },
+  {
+    accessorKey: "start_date",
+    header: "Fecha inicio",
+    cell: ({ row }) => formatIsoDateTo(row.original.start_date),
+  },
+  {
+    accessorKey: "end_date",
+    header: "Fecha fin",
+    cell: ({ row }) => formatIsoDateTo(row.original.end_date),
+  },
+  {
+    accessorKey: "price",
+    header: "Precio",
+    meta: {
+      class: {
+        th: "text-right",
+        td: "text-right font-medium",
+      },
+    },
+    cell: ({ row }) =>
+      new Intl.NumberFormat("es-ES", {
+        style: "currency",
+        currency: "EUR",
+      }).format(row.original.price),
+  },
+  {
+    accessorKey: "confirmed",
+    header: "Confirmado",
+    meta: {
+      class: {
+        th: "text-center",
+        td: "text-center",
+      },
+    },
+    cell: ({ row }) => {
+      const confirmed = row.original.confirmed;
+      return h(
+        UBadge as any,
+        {
+          size: "md",
+          variant: "subtle",
+          color: confirmed ? "success" : "warning",
+        },
+        () => (confirmed ? "Sí" : "No")
+      );
+    },
+  },
   {
     id: "actions",
     header: "Acciones",
@@ -51,9 +110,9 @@ const columns: TableColumn<ClientDto>[] = [
           size: "sm",
           color: "neutral",
           variant: "outline",
-          to: `/clientes/${row.original.id}`,
+          to: `/reservas/${row.original.id}`,
         },
-        () => "Editar"
+        () => "Detalles"
       ),
   },
 ];
@@ -62,14 +121,11 @@ const columns: TableColumn<ClientDto>[] = [
 <template>
   <section class="py-6">
     <div class="mb-4 flex items-center justify-between gap-3">
-      <h1 class="text-xl font-semibold">Clientes</h1>
+      <h1 class="text-xl font-semibold">Reservas</h1>
 
       <div class="flex items-center gap-2">
         <UButton color="neutral" variant="outline" @click="refresh()">
           Recargar
-        </UButton>
-        <UButton to="/clientes/nuevo" icon="i-lucide-user-plus">
-          Agregar cliente
         </UButton>
       </div>
     </div>
@@ -89,7 +145,7 @@ const columns: TableColumn<ClientDto>[] = [
         <UInput
           v-model="search"
           class="w-full sm:max-w-md"
-          placeholder="Buscar cliente..."
+          placeholder="Buscar reserva..."
         />
 
         <div class="flex items-center gap-2">
@@ -106,13 +162,13 @@ const columns: TableColumn<ClientDto>[] = [
 
       <div class="overflow-auto rounded-lg border border-default">
         <UTable
-          :data="paginatedClients"
+          :data="paginatedReservations"
           :columns="columns"
           :ui="{ tbody: '[&>tr:nth-child(odd)]:bg-elevated' }"
         >
           <template #empty>
             <div class="py-6 text-center text-sm text-muted">
-              No hay clientes.
+              No hay reservas.
             </div>
           </template>
         </UTable>
@@ -122,7 +178,7 @@ const columns: TableColumn<ClientDto>[] = [
         class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
       >
         <div class="text-sm text-muted">
-          {{ filteredClients.length }} resultado(s)
+          {{ filteredReservations.length }} resultado(s)
         </div>
 
         <div class="flex items-center justify-end gap-2">

@@ -10,6 +10,16 @@ export type ReservationDto = {
   active: boolean;
 };
 
+export type ReservationListItemDto = {
+  id: string;
+  client: string;
+  resource: string;
+  start_date: string;
+  end_date: string;
+  price: number;
+  confirmed: boolean;
+};
+
 export type ReservationCreateInput = Omit<ReservationDto, "id">;
 
 export type ReservationUpdateInput = Partial<ReservationCreateInput>;

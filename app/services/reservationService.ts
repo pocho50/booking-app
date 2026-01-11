@@ -1,8 +1,13 @@
 import type {
   ReservationCreateInput,
   ReservationDto,
+  ReservationListItemDto,
   ReservationUpdateInput,
 } from "../../shared/types/reservation";
+
+export async function listReservations(): Promise<ReservationListItemDto[]> {
+  return $fetch<ReservationListItemDto[]>("/api/reservations");
+}
 
 export async function createReservation(data: ReservationCreateInput) {
   return $fetch<ReservationDto>("/api/reservations", {

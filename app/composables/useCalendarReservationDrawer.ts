@@ -5,6 +5,7 @@ import type {
   ReservationDto,
   ReservationUpdateInput,
 } from "../../shared/types/reservation";
+import { formatIsoDateTo } from "../../shared/utils/dateFormat";
 import {
   createReservation,
   deleteReservation,
@@ -47,11 +48,7 @@ export function useCalendarReservationDrawer(params: {
     if (!selectedReservationIsoDate.value) {
       return undefined;
     }
-    const [y, m, d] = selectedReservationIsoDate.value.split("-");
-    if (!y || !m || !d) {
-      return selectedReservationIsoDate.value;
-    }
-    return `${d}/${m}/${y}`;
+    return formatIsoDateTo(selectedReservationIsoDate.value);
   });
 
   const drawerTitle = computed(() =>

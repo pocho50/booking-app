@@ -164,7 +164,11 @@ async function confirmDelete() {
       </div>
 
       <div class="overflow-auto rounded-lg border border-default">
-        <UTable :data="paginatedResources" :columns="columns">
+        <UTable
+          :data="paginatedResources"
+          :columns="columns"
+          :ui="{ tbody: '[&>tr:nth-child(odd)]:bg-elevated' }"
+        >
           <template #empty>
             <div class="py-6 text-center text-sm text-muted">
               No hay recursos.
