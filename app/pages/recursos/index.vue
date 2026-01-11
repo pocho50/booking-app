@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import { h, resolveComponent } from "vue";
+import type { TableColumn } from "@nuxt/ui";
 import {
   deleteResource,
   listResources,
   type ResourceDto,
 } from "../../services/resourceService";
+import { useTableSearchPagination } from "../../composables/useTableSearchPagination";
+
+const UButton = resolveComponent("UButton");
 
 const {
   data: resourcesData,
@@ -13,6 +18,19 @@ const {
 } = await useAsyncData<ResourceDto[]>("resources", () => listResources());
 
 const resources = computed(() => resourcesData.value ?? []);
+
+const {
+  search,
+  pageSize,
+  page,
+  filteredItems: filteredResources,
+  paginatedItems: paginatedResources,
+  totalPages,
+  pageSizeOptions,
+} = useTableSearchPagination<ResourceDto>({
+  items: resources,
+  searchFields: (r) => [r.name, r.description],
+});
 
 const toast = useToast();
 
@@ -31,6 +49,45 @@ function requestDelete(resource: ResourceDto) {
   resourceToDelete.value = resource;
   deleteModalOpen.value = true;
 }
+
+const columns: TableColumn<ResourceDto>[] = [
+  { accessorKey: "name", header: "Nombre" },
+  { accessorKey: "description", header: "Descripción" },
+  {
+    id: "actions",
+    header: "Acciones",
+    enableHiding: false,
+    meta: {
+      class: {
+        th: "text-right",
+        td: "text-right",
+      },
+    },
+    cell: ({ row }) =>
+      h("div", { class: "flex justify-end gap-2" }, [
+        h(
+          UButton as any,
+          {
+            size: "sm",
+            color: "neutral",
+            variant: "outline",
+            to: `/recursos/${row.original.id}`,
+          },
+          () => "Editar"
+        ),
+        h(
+          UButton as any,
+          {
+            size: "sm",
+            color: "error",
+            variant: "outline",
+            onClick: () => requestDelete(row.original),
+          },
+          () => "Eliminar"
+        ),
+      ]),
+  },
+];
 
 async function confirmDelete() {
   if (!resourceToDelete.value) {
@@ -84,50 +141,69 @@ async function confirmDelete() {
       @retry="refresh()"
     />
 
-    <div v-else class="overflow-auto rounded-lg border border-default">
-      <table class="w-full border-collapse text-sm">
-        <thead class="bg-elevated/60">
-          <tr>
-            <th class="border border-default px-3 py-2 text-left">Nombre</th>
-            <th class="border border-default px-3 py-2 text-left">
-              Descripción
-            </th>
-            <th class="border border-default px-3 py-2 text-right">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="r in resources" :key="r.id">
-            <td class="border border-default px-3 py-2">{{ r.name }}</td>
-            <td class="border border-default px-3 py-2">{{ r.description }}</td>
-            <td class="border border-default px-3 py-2 text-right">
-              <div class="flex justify-end gap-2">
-                <UButton
-                  size="sm"
-                  color="neutral"
-                  variant="outline"
-                  :to="`/recursos/${r.id}`"
-                >
-                  Editar
-                </UButton>
-                <UButton
-                  size="sm"
-                  color="error"
-                  variant="outline"
-                  @click="requestDelete(r)"
-                >
-                  Eliminar
-                </UButton>
-              </div>
-            </td>
-          </tr>
+    <div v-else class="space-y-3">
+      <div
+        class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <UInput
+          v-model="search"
+          class="w-full sm:max-w-md"
+          placeholder="Buscar recurso..."
+        />
 
-          <tr v-if="resources.length === 0">
-            <td class="border border-default px-3 py-6 text-center" colspan="3">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-muted">Filas:</span>
+          <USelect
+            v-model="pageSize"
+            :items="pageSizeOptions"
+            value-key="value"
+            size="sm"
+            class="w-28"
+          />
+        </div>
+      </div>
+
+      <div class="overflow-auto rounded-lg border border-default">
+        <UTable :data="paginatedResources" :columns="columns">
+          <template #empty>
+            <div class="py-6 text-center text-sm text-muted">
               No hay recursos.
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+          </template>
+        </UTable>
+      </div>
+
+      <div
+        class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div class="text-sm text-muted">
+          {{ filteredResources.length }} resultado(s)
+        </div>
+
+        <div class="flex items-center justify-end gap-2">
+          <UButton
+            size="sm"
+            color="neutral"
+            variant="outline"
+            :disabled="page <= 1"
+            @click="page -= 1"
+          >
+            Anterior
+          </UButton>
+          <div class="text-sm text-muted">
+            Página {{ page }} de {{ totalPages }}
+          </div>
+          <UButton
+            size="sm"
+            color="neutral"
+            variant="outline"
+            :disabled="page >= totalPages"
+            @click="page += 1"
+          >
+            Siguiente
+          </UButton>
+        </div>
+      </div>
     </div>
 
     <AppConfirmModal

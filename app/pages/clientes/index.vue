@@ -1,5 +1,10 @@
 <script setup lang="ts">
+import { h, resolveComponent } from "vue";
+import type { TableColumn } from "@nuxt/ui";
 import { listClients, type ClientDto } from "../../services/clientService";
+import { useTableSearchPagination } from "../../composables/useTableSearchPagination";
+
+const UButton = resolveComponent("UButton");
 
 const {
   data: clientsData,
@@ -9,6 +14,49 @@ const {
 } = await useAsyncData<ClientDto[]>("clients", () => listClients());
 
 const clients = computed(() => clientsData.value ?? []);
+
+const {
+  search,
+  pageSize,
+  page,
+  filteredItems: filteredClients,
+  paginatedItems: paginatedClients,
+  totalPages,
+  pageSizeOptions,
+} = useTableSearchPagination<ClientDto>({
+  items: clients,
+  searchFields: (c) => [c.name, c.last_name, c.doc, c.email, c.phone],
+});
+
+const columns: TableColumn<ClientDto>[] = [
+  { accessorKey: "name", header: "Nombre" },
+  { accessorKey: "last_name", header: "Apellido" },
+  { accessorKey: "doc", header: "Doc" },
+  { accessorKey: "email", header: "Email" },
+  { accessorKey: "phone", header: "Teléfono" },
+  {
+    id: "actions",
+    header: "Acciones",
+    enableHiding: false,
+    meta: {
+      class: {
+        th: "text-right",
+        td: "text-right",
+      },
+    },
+    cell: ({ row }) =>
+      h(
+        UButton as any,
+        {
+          size: "sm",
+          color: "neutral",
+          variant: "outline",
+          to: `/clientes/${row.original.id}`,
+        },
+        () => "Editar"
+      ),
+  },
+];
 </script>
 
 <template>
@@ -34,44 +82,69 @@ const clients = computed(() => clientsData.value ?? []);
       @retry="refresh()"
     />
 
-    <div v-else class="overflow-auto rounded-lg border border-default">
-      <table class="w-full border-collapse text-sm">
-        <thead class="bg-elevated/60">
-          <tr>
-            <th class="border border-default px-3 py-2 text-left">Nombre</th>
-            <th class="border border-default px-3 py-2 text-left">Apellido</th>
-            <th class="border border-default px-3 py-2 text-left">Doc</th>
-            <th class="border border-default px-3 py-2 text-left">Email</th>
-            <th class="border border-default px-3 py-2 text-left">Teléfono</th>
-            <th class="border border-default px-3 py-2 text-right">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="c in clients" :key="c.id">
-            <td class="border border-default px-3 py-2">{{ c.name }}</td>
-            <td class="border border-default px-3 py-2">{{ c.last_name }}</td>
-            <td class="border border-default px-3 py-2">{{ c.doc }}</td>
-            <td class="border border-default px-3 py-2">{{ c.email }}</td>
-            <td class="border border-default px-3 py-2">{{ c.phone }}</td>
-            <td class="border border-default px-3 py-2 text-right">
-              <UButton
-                size="sm"
-                color="neutral"
-                variant="outline"
-                :to="`/clientes/${c.id}`"
-              >
-                Editar
-              </UButton>
-            </td>
-          </tr>
+    <div v-else class="space-y-3">
+      <div
+        class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <UInput
+          v-model="search"
+          class="w-full sm:max-w-md"
+          placeholder="Buscar cliente..."
+        />
 
-          <tr v-if="clients.length === 0">
-            <td class="border border-default px-3 py-6 text-center" colspan="6">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-muted">Filas:</span>
+          <USelect
+            v-model="pageSize"
+            :items="pageSizeOptions"
+            value-key="value"
+            size="sm"
+            class="w-28"
+          />
+        </div>
+      </div>
+
+      <div class="overflow-auto rounded-lg border border-default">
+        <UTable :data="paginatedClients" :columns="columns">
+          <template #empty>
+            <div class="py-6 text-center text-sm text-muted">
               No hay clientes.
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+          </template>
+        </UTable>
+      </div>
+
+      <div
+        class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div class="text-sm text-muted">
+          {{ filteredClients.length }} resultado(s)
+        </div>
+
+        <div class="flex items-center justify-end gap-2">
+          <UButton
+            size="sm"
+            color="neutral"
+            variant="outline"
+            :disabled="page <= 1"
+            @click="page -= 1"
+          >
+            Anterior
+          </UButton>
+          <div class="text-sm text-muted">
+            Página {{ page }} de {{ totalPages }}
+          </div>
+          <UButton
+            size="sm"
+            color="neutral"
+            variant="outline"
+            :disabled="page >= totalPages"
+            @click="page += 1"
+          >
+            Siguiente
+          </UButton>
+        </div>
+      </div>
     </div>
   </section>
 </template>
