@@ -45,8 +45,23 @@ model Reservation {
   confirmed Boolean @default(false)
   active    Boolean @default(true)
 
+  billings Billing[]
+
   resource Resource @relation(fields: [id_resource], references: [id])
   client   Client?  @relation(fields: [id_client], references: [id])
 
   @@map("reservations")
+}
+
+model Billing {
+  id             String   @id @default(uuid())
+  date           DateTime
+  id_reservation String
+  amount         Float
+  observations   String?
+
+  reservation Reservation @relation(fields: [id_reservation], references: [id])
+
+  @@index([id_reservation])
+  @@map("billings")
 }
