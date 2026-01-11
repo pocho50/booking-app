@@ -34,6 +34,27 @@ const isoDateString = (message: string) =>
     )
     .transform((v) => v);
 
+const priceSchema = z.preprocess(
+  (v) => {
+    if (typeof v === "number") {
+      return v;
+    }
+    if (typeof v === "string") {
+      const trimmed = v.trim();
+      if (!trimmed) {
+        return undefined;
+      }
+      return Number(trimmed);
+    }
+    return undefined;
+  },
+  z
+    .number()
+    .optional()
+    .refine((n) => n === undefined || Number.isFinite(n), "Precio inválido")
+    .refine((n) => n === undefined || n >= 0, "El precio debe ser >= 0")
+);
+
 const reservationBaseSchema = z.object({
   start_date: isoDateString("La fecha desde es obligatoria"),
   end_date: isoDateString("La fecha hasta es obligatoria"),
@@ -48,29 +69,13 @@ const reservationBaseSchema = z.object({
       z.string().optional()
     )
     .optional(),
-  price: z.preprocess(
-    (v) => {
-      if (typeof v === "number") {
-        return String(v);
-      }
-      if (typeof v === "string") {
-        return v;
-      }
-      return "";
-    },
-    z
-      .string()
-      .min(1, "El precio es obligatorio")
-      .transform((v) => Number(v))
-      .refine((n) => Number.isFinite(n), "Precio inválido")
-      .refine((n) => n >= 0, "El precio debe ser >= 0")
-  ),
+  price: priceSchema,
   confirmed: z.preprocess(coerceBoolean, z.boolean()).default(false),
   active: z.preprocess(coerceBoolean, z.boolean()).default(true),
 });
 
-export const reservationCreateSchema = reservationBaseSchema.superRefine(
-  (data, ctx) => {
+export const reservationCreateSchema = reservationBaseSchema
+  .superRefine((data, ctx) => {
     if (data.start_date && data.end_date && data.start_date > data.end_date) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -86,8 +91,19 @@ export const reservationCreateSchema = reservationBaseSchema.superRefine(
         path: ["id_client"],
       });
     }
-  }
-);
+
+    if (data.active !== false && data.price === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "El precio es obligatorio",
+        path: ["price"],
+      });
+    }
+  })
+  .transform((data) => ({
+    ...data,
+    price: data.price ?? 0,
+  }));
 
 export const reservationCreateFormSchema = reservationBaseSchema
   .omit({ id_resource: true })
@@ -105,6 +121,14 @@ export const reservationCreateFormSchema = reservationBaseSchema
         code: z.ZodIssueCode.custom,
         message: "El cliente es obligatorio",
         path: ["id_client"],
+      });
+    }
+
+    if (data.active !== false && data.price === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "El precio es obligatorio",
+        path: ["price"],
       });
     }
   });

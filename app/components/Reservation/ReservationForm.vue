@@ -152,9 +152,10 @@ watch(
 function onSubmit(event: FormSubmitEvent<ReservationFormSchema>) {
   const start_date = event.data.start_date;
   const end_date = event.data.end_date;
-  const price = event.data.price;
   const active = event.data.active ?? true;
   const confirmed = event.data.confirmed ?? false;
+
+  const price = active ? event.data.price ?? 0 : 0;
 
   const clientId = active ? event.data.id_client ?? null : null;
 
@@ -290,7 +291,7 @@ const resourceName = computed(
           </UFormField>
         </div>
 
-        <UFormField label="Precio" name="price" required>
+        <UFormField label="Precio" name="price" :required="!isMaintenanceBlock">
           <UInput
             v-model.number="state.price"
             type="number"
@@ -298,6 +299,7 @@ const resourceName = computed(
             min="0"
             class="w-full"
             placeholder="0.00"
+            :disabled="isMaintenanceBlock"
           />
         </UFormField>
 
