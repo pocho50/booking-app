@@ -8,4 +8,9 @@ export type BillingDto = {
 
 export type BillingCreateInput = Omit<BillingDto, "id">;
 
+export type BillingCreateForReservationInput = Omit<
+  BillingCreateInput,
+  "id_reservation"
+>;
+
 export type BillingUpdateInput = Partial<BillingCreateInput>;

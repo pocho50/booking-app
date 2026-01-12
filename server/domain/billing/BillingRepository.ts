@@ -6,6 +6,7 @@ import type {
 
 export interface BillingRepository {
   getById(id: string): Promise<Billing | null>;
+  listByReservationId(reservationId: string): Promise<Billing[]>;
   create(data: BillingCreateInput): Promise<Billing>;
   update(id: string, data: BillingUpdateInput): Promise<Billing>;
   delete(id: string): Promise<void>;

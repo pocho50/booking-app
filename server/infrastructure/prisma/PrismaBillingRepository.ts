@@ -27,6 +27,15 @@ export class PrismaBillingRepository implements BillingRepository {
     return toDomainBilling(found);
   }
 
+  async listByReservationId(reservationId: string): Promise<Billing[]> {
+    const items = await prisma.billing.findMany({
+      where: { id_reservation: reservationId },
+      orderBy: { date: "desc" },
+    });
+
+    return items.map(toDomainBilling);
+  }
+
   async create(data: BillingCreateInput): Promise<Billing> {
     const created = await prisma.billing.create({
       data: {

@@ -1,17 +1,14 @@
 <script setup lang="ts">
+import type { TabsItem } from "@nuxt/ui";
 import {
   deleteReservation,
   getReservation,
-  updateReservation,
 } from "../../services/reservationService";
 import {
   listResources,
   type ResourceDto,
 } from "../../services/resourceService";
-import type {
-  ReservationDto,
-  ReservationUpdateInput,
-} from "../../../shared/types/reservation";
+import type { ReservationDto } from "../../../shared/types/reservation";
 
 const route = useRoute();
 const id = computed(() => String(route.params.id));
@@ -53,49 +50,12 @@ const toast = useToast();
 
 const formId = "reservation-detail-form";
 
-async function onSubmit(data: {
-  clientId: string | null;
-  start_date: string;
-  end_date: string;
-  observation?: string;
-  price: number;
-  confirmed: boolean;
-  active: boolean;
-}) {
-  try {
-    saving.value = true;
+const activeTab = ref<"info" | "billings">("info");
 
-    const input: ReservationUpdateInput = {
-      id_client: data.clientId,
-      start_date: data.start_date,
-      end_date: data.end_date,
-      observation: data.observation,
-      price: data.price,
-      confirmed: data.confirmed,
-      active: data.active,
-    };
-
-    await updateReservation(id.value, input);
-    toast.add({
-      title: "Cambios guardados",
-      description: "La reserva se actualizó correctamente.",
-      color: "success",
-    });
-    await refresh();
-  } catch (err: any) {
-    toast.add({
-      title: "Error",
-      description: err?.data?.message || err?.message || "No se pudo guardar.",
-      color: "error",
-    });
-  } finally {
-    saving.value = false;
-  }
-}
-
-function onCancel() {
-  navigateTo("/reservas");
-}
+const tabItems = computed<TabsItem[]>(() => [
+  { label: "Información", value: "info", slot: "info" },
+  { label: "Cobros", value: "billings", slot: "billings" },
+]);
 
 function requestDelete() {
   deleteModalOpen.value = true;
@@ -170,37 +130,34 @@ const deleteDescription = computed(() => {
       />
 
       <UCard v-else>
-        <ReservationForm
-          :resource="resourceForForm"
-          :form-id="formId"
-          :initial-values="reservation"
-          :loading="saving"
-          @submit="onSubmit"
-          @cancel="onCancel"
-        />
-      </UCard>
+        <div class="flex flex-col gap-4">
+          <UTabs
+            v-model="activeTab"
+            :items="tabItems"
+            color="info"
+            variant="pill"
+            :unmount-on-hide="false"
+            class="w-full"
+          >
+            <template #info>
+              <ReservationDetailInfoTab
+                v-if="reservation"
+                :reservation-id="id"
+                :resource="resourceForForm"
+                :reservation="reservation"
+                :form-id="formId"
+                :disabled="deleting"
+                @saving-change="(v) => (saving = v)"
+                @saved="refresh()"
+              />
+            </template>
 
-      <div
-        v-if="!pending && !error"
-        class="flex items-center justify-end gap-2"
-      >
-        <UButton
-          color="neutral"
-          variant="outline"
-          :disabled="saving || deleting"
-          @click="onCancel"
-        >
-          Cancelar
-        </UButton>
-        <UButton
-          type="submit"
-          :form="formId"
-          :loading="saving"
-          :disabled="saving || deleting"
-        >
-          Guardar cambios
-        </UButton>
-      </div>
+            <template #billings>
+              <ReservationDetailBillingsTab :reservation-id="id" />
+            </template>
+          </UTabs>
+        </div>
+      </UCard>
 
       <AppConfirmModal
         v-model="deleteModalOpen"

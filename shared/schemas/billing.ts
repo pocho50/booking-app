@@ -49,6 +49,10 @@ const billingBaseSchema = z.object({
 
 export const billingCreateSchema = billingBaseSchema;
 
+export const billingCreateForReservationSchema = billingBaseSchema.omit({
+  id_reservation: true,
+});
+
 export const billingUpdateSchema = billingBaseSchema.partial();
 
 export type BillingCreateSchema = z.output<typeof billingCreateSchema>;
