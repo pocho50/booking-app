@@ -3,6 +3,7 @@ import type {
   CalendarReservationDto,
   CalendarResourceDto,
 } from "../../../shared/types/calendar";
+import { formatMoney } from "../../../shared/utils/moneyFormat";
 
 type CalendarReservation = CalendarReservationDto & {
   _idx?: number;
@@ -542,12 +543,7 @@ function getReservationButtonUi(reservation: CalendarReservation) {
                             {{ i18n.popover.from }} → {{ i18n.popover.to }}
                           </div>
                           <div class="text-base font-semibold text-highlighted">
-                            {{
-                              new Intl.NumberFormat("es-ES", {
-                                style: "currency",
-                                currency: "EUR",
-                              }).format(r.price)
-                            }}
+                            {{ formatMoney(r.price) }}
                           </div>
                         </div>
                         <div class="mt-1 text-base">

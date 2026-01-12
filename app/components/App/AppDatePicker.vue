@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import type { DateValue } from "@internationalized/date";
 import { parseDate } from "@internationalized/date";
+import { formatIsoDateTo } from "../../../shared/utils/dateFormat";
 
 type Props = {
   placeholder?: string;
   disabled?: boolean;
   minIso?: string;
+  locale?: string;
 };
 
 const props = withDefaults(defineProps<Props>(), {
   placeholder: "dd/mm/aaaa",
   disabled: false,
   minIso: undefined,
+  locale: "es-ES",
 });
 
 const model = defineModel<string | undefined>({ required: true });
@@ -67,11 +70,7 @@ const displayValue = computed(() => {
   if (!model.value) {
     return "";
   }
-  const [y, m, d] = model.value.split("-");
-  if (!y || !m || !d) {
-    return model.value;
-  }
-  return `${d}/${m}/${y}`;
+  return formatIsoDateTo(model.value, props.locale);
 });
 
 function onSelect(value: DateValue | null) {

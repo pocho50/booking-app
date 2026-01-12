@@ -4,6 +4,7 @@ import type { TableColumn } from "@nuxt/ui";
 import { listReservations } from "../../services/reservationService";
 import type { ReservationListItemDto } from "../../../shared/types/reservation";
 import { formatIsoDateTo } from "../../../shared/utils/dateFormat";
+import { formatMoney } from "../../../shared/utils/moneyFormat";
 import { useTableSearchPagination } from "../../composables/useTableSearchPagination";
 
 const UButton = resolveComponent("UButton");
@@ -65,11 +66,7 @@ const columns: TableColumn<ReservationListItemDto>[] = [
         td: "text-right font-medium",
       },
     },
-    cell: ({ row }) =>
-      new Intl.NumberFormat("es-ES", {
-        style: "currency",
-        currency: "EUR",
-      }).format(row.original.price),
+    cell: ({ row }) => formatMoney(row.original.price),
   },
   {
     accessorKey: "confirmed",

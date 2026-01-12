@@ -10,12 +10,17 @@ import {
   type BillingCreateSchema,
 } from "../../../shared/schemas/billing";
 import { formatIsoDateTo } from "../../../shared/utils/dateFormat";
+import { formatMoney } from "../../../shared/utils/moneyFormat";
 
 type Props = {
   reservationId: string;
 };
 
 const props = defineProps<Props>();
+
+const emit = defineEmits<{
+  billingsTotalChange: [payload: { total: number; pending: boolean }];
+}>();
 
 const toast = useToast();
 
@@ -32,6 +37,17 @@ const {
   create,
   remove,
 } = useReservationBillings(reservationIdRef);
+
+const billingsTotal = computed(() =>
+  billings.value.reduce((acc, b) => acc + (b.amount ?? 0), 0)
+);
+
+watchEffect(() => {
+  emit("billingsTotalChange", {
+    total: billingsTotal.value,
+    pending: pending.value,
+  });
+});
 
 type BillingFormSchema = Omit<BillingCreateSchema, "id_reservation">;
 
@@ -126,10 +142,7 @@ const columns: TableColumn<BillingDto>[] = [
       },
     },
     cell: ({ row }: { row: { original: BillingDto } }) =>
-      new Intl.NumberFormat("es-ES", {
-        style: "currency",
-        currency: "EUR",
-      }).format(row.original.amount),
+      formatMoney(row.original.amount),
   },
   {
     accessorKey: "observations",

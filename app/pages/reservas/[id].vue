@@ -9,6 +9,8 @@ import {
   type ResourceDto,
 } from "../../services/resourceService";
 import type { ReservationDto } from "../../../shared/types/reservation";
+import { formatMoney } from "../../../shared/utils/moneyFormat";
+import { useReservationBalance } from "../../composables/useReservationBalance";
 
 const route = useRoute();
 const id = computed(() => String(route.params.id));
@@ -22,6 +24,11 @@ const {
   () => `reservation-${id.value}`,
   () => getReservation(id.value)
 );
+
+const reservationPrice = computed(() => reservation.value?.price ?? 0);
+
+const { billingsPending, saldo, onBillingsTotalChange } =
+  useReservationBalance(reservationPrice);
 
 const { data: resourcesData } = await useAsyncData<ResourceDto[]>(
   "resources-for-reservation-detail",
@@ -99,7 +106,21 @@ const deleteDescription = computed(() => {
       >
         <div>
           <h1 class="text-2xl font-semibold">Editar reserva</h1>
-          <p class="text-sm text-muted">Editar o eliminar la reserva.</p>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2 text-sm text-muted">
+              <span class="font-medium text-foreground">Saldo:</span>
+              <UBadge
+                :color="saldo <= 0 ? 'success' : 'error'"
+                variant="subtle"
+                class="px-2.5 py-1 text-sm font-semibold"
+              >
+                {{ formatMoney(saldo) }}
+              </UBadge>
+              <span v-if="billingsPending" class="text-dimmed"
+                >(calculando...)</span
+              >
+            </div>
+          </div>
         </div>
 
         <div class="flex items-center gap-2">
@@ -153,7 +174,10 @@ const deleteDescription = computed(() => {
             </template>
 
             <template #billings>
-              <ReservationDetailBillingsTab :reservation-id="id" />
+              <ReservationDetailBillingsTab
+                :reservation-id="id"
+                @billings-total-change="onBillingsTotalChange"
+              />
             </template>
           </UTabs>
         </div>
