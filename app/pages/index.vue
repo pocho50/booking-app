@@ -96,7 +96,11 @@ async function onBillingsUpdated() {
     >
       <template #body>
         <div
-          v-if="reservationInitialValues && editingReservationId"
+          v-if="
+            reservationInitialValues &&
+            editingReservationId &&
+            reservationInitialValues.active
+          "
           class="mb-4 rounded-lg border border-default bg-elevated/40 p-3"
         >
           <div class="flex items-center justify-between gap-3">

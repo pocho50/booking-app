@@ -586,7 +586,10 @@ function getReservationButtonUi(reservation: CalendarReservation) {
                             }`.trim() || "-"
                           }}</span>
                         </div>
-                        <div class="flex items-center justify-between gap-3">
+                        <div
+                          v-if="r.active"
+                          class="flex items-center justify-between gap-3"
+                        >
                           <span class="text-muted">{{
                             i18n.popover.saldo
                           }}</span>
@@ -636,7 +639,7 @@ function getReservationButtonUi(reservation: CalendarReservation) {
 
                       <div class="mt-4 flex items-center justify-end">
                         <UButton
-                          v-if="r.id"
+                          v-if="r.id && r.active"
                           size="xs"
                           color="neutral"
                           variant="outline"
