@@ -212,6 +212,25 @@ export function useCalendarReservationDrawer(params: {
     billingsDrawerOpen.value = true;
   }
 
+  function syncEditingReservationSaldoFromCalendar(
+    resources: CalendarResourceDto[]
+  ) {
+    if (!editingReservationId.value || !reservationInitialValues.value) {
+      return;
+    }
+
+    const reservation = resources
+      .flatMap((resource) => resource.reservations || [])
+      .find((item) => item.id === editingReservationId.value);
+
+    if (reservation && typeof reservation.saldo === "number") {
+      reservationInitialValues.value = {
+        ...reservationInitialValues.value,
+        saldo: reservation.saldo,
+      };
+    }
+  }
+
   async function confirmDeleteReservation() {
     if (!editingReservationId.value) {
       deleteModalOpen.value = false;
@@ -268,6 +287,7 @@ export function useCalendarReservationDrawer(params: {
     onReservationCancel,
     onBillingsDrawerClose,
     openBillingsById,
+    syncEditingReservationSaldoFromCalendar,
     confirmDeleteReservation,
   };
 }

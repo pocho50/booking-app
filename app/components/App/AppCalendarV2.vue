@@ -425,6 +425,7 @@ function getReservationButtonUi(reservation: CalendarReservation) {
             :items="monthOptions"
             value-key="value"
             size="sm"
+            class="w-32"
             @update:model-value="onSelectChange"
           />
 
