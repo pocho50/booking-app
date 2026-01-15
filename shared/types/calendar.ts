@@ -5,6 +5,7 @@ export type CalendarReservationDto = {
   confirmed: number;
   active: number;
   price: number;
+  saldo?: number;
   clientFirstName?: string;
   clientLastName?: string;
 };

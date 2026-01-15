@@ -1,5 +1,8 @@
 import { computed, ref } from "vue";
-import type { CalendarResourceDto } from "../../shared/types/calendar";
+import type {
+  CalendarResourceDto,
+  CalendarReservationDto,
+} from "../../shared/types/calendar";
 import type {
   ReservationCreateInput,
   ReservationDto,
@@ -25,6 +28,11 @@ type ReservationEditPayload = {
   resourceId: string;
 };
 
+type ReservationBillingsPayload = {
+  reservationId: string | null;
+  reservation: CalendarReservationDto;
+};
+
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export function useCalendarReservationDrawer(params: {
@@ -38,6 +46,10 @@ export function useCalendarReservationDrawer(params: {
   const editingReservationId = ref<string | null>(null);
   const reservationInitialValues = ref<ReservationDto | null>(null);
   const reservationLoading = ref(false);
+
+  const billingsDrawerOpen = ref(false);
+  const billingsReservationId = ref<string | null>(null);
+  const billingsReservation = ref<CalendarReservationDto | null>(null);
 
   const deleteModalOpen = ref(false);
   const deleting = ref(false);
@@ -55,6 +67,21 @@ export function useCalendarReservationDrawer(params: {
     editingReservationId.value ? "Editar reserva" : "Nueva reserva"
   );
 
+  const billingsDrawerTitle = computed(() => {
+    const current = billingsReservation.value;
+    if (!current) {
+      return "Cobros";
+    }
+
+    const name = `${current.clientFirstName || ""} ${
+      current.clientLastName || ""
+    }`
+      .trim()
+      .replace(/^\s+|\s+$/g, "");
+
+    return name ? `Cobros • ${name}` : "Cobros";
+  });
+
   function parseIsoFromCalendarClick({
     day,
     month,
@@ -71,6 +98,7 @@ export function useCalendarReservationDrawer(params: {
 
     editingReservationId.value = null;
     reservationInitialValues.value = null;
+    billingsDrawerOpen.value = false;
 
     selectedReservationIsoDate.value = parseIsoFromCalendarClick(payload);
     reservationDrawerOpen.value = true;
@@ -87,6 +115,7 @@ export function useCalendarReservationDrawer(params: {
     selectedReservationResource.value = found ?? null;
 
     editingReservationId.value = payload.reservationId;
+    billingsDrawerOpen.value = false;
     reservationDrawerOpen.value = true;
     reservationLoading.value = true;
 
@@ -160,6 +189,29 @@ export function useCalendarReservationDrawer(params: {
     reservationInitialValues.value = null;
   }
 
+  function onReservationBillings(payload: ReservationBillingsPayload) {
+    if (!payload.reservationId) {
+      return;
+    }
+
+    billingsReservationId.value = payload.reservationId;
+    billingsReservation.value = payload.reservation;
+    reservationDrawerOpen.value = false;
+    billingsDrawerOpen.value = true;
+  }
+
+  function onBillingsDrawerClose() {
+    billingsDrawerOpen.value = false;
+    billingsReservationId.value = null;
+    billingsReservation.value = null;
+  }
+
+  function openBillingsById(reservationId: string) {
+    billingsReservationId.value = reservationId;
+    billingsReservation.value = null;
+    billingsDrawerOpen.value = true;
+  }
+
   async function confirmDeleteReservation() {
     if (!editingReservationId.value) {
       deleteModalOpen.value = false;
@@ -201,14 +253,21 @@ export function useCalendarReservationDrawer(params: {
     editingReservationId,
     reservationInitialValues,
     reservationLoading,
+    billingsDrawerOpen,
+    billingsReservationId,
+    billingsReservation,
     deleteModalOpen,
     deleting,
     reservationDateLabel,
     drawerTitle,
+    billingsDrawerTitle,
     onAvailableDayClick,
     onReservationEdit,
+    onReservationBillings,
     onReservationSubmit,
     onReservationCancel,
+    onBillingsDrawerClose,
+    openBillingsById,
     confirmDeleteReservation,
   };
 }

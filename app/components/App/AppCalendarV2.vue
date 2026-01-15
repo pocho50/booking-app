@@ -37,8 +37,10 @@ type CalendarI18n = {
     from: string;
     to: string;
     price: string;
+    saldo: string;
     confirmed: string;
     active: string;
+    billings: string;
     yes: string;
     no: string;
   };
@@ -53,6 +55,11 @@ type ReservationClickPayload = {
 };
 
 type ReservationEditPayload = ReservationClickPayload;
+
+type ReservationBillingsPayload = {
+  reservationId: string | null;
+  reservation: CalendarReservationDto;
+};
 
 type AvailableDayClickPayload = {
   resourceId: string;
@@ -94,8 +101,10 @@ const defaultI18n: CalendarI18n = {
     from: "Desde",
     to: "Hasta",
     price: "Precio",
+    saldo: "Saldo",
     confirmed: "Confirmado",
     active: "Activo",
+    billings: "Ver cobros",
     yes: "Sí",
     no: "No",
   },
@@ -127,6 +136,7 @@ const emit = defineEmits<{
   "month-change": [payload: MonthChangePayload];
   "reservation-click": [payload: ReservationClickPayload];
   "reservation-edit": [payload: ReservationEditPayload];
+  "reservation-billings": [payload: ReservationBillingsPayload];
   "available-day-click": [payload: AvailableDayClickPayload];
 }>();
 
@@ -331,6 +341,13 @@ function onAvailableCellClick(resourceId: string, day: number) {
     day,
     month: monthModel.value,
     year: yearModel.value,
+  });
+}
+
+function onReservationBillings(reservation: CalendarReservation) {
+  emit("reservation-billings", {
+    reservationId: reservation.id ?? null,
+    reservation,
   });
 }
 
@@ -570,6 +587,20 @@ function getReservationButtonUi(reservation: CalendarReservation) {
                         </div>
                         <div class="flex items-center justify-between gap-3">
                           <span class="text-muted">{{
+                            i18n.popover.saldo
+                          }}</span>
+                          <UBadge
+                            size="sm"
+                            variant="subtle"
+                            :color="
+                              (r.saldo ?? r.price) <= 0 ? 'success' : 'error'
+                            "
+                          >
+                            {{ formatMoney(r.saldo ?? r.price) }}
+                          </UBadge>
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                          <span class="text-muted">{{
                             i18n.popover.confirmed
                           }}</span>
                           <UBadge
@@ -600,6 +631,18 @@ function getReservationButtonUi(reservation: CalendarReservation) {
                             }}
                           </UBadge>
                         </div>
+                      </div>
+
+                      <div class="mt-4 flex items-center justify-end">
+                        <UButton
+                          v-if="r.id"
+                          size="xs"
+                          color="neutral"
+                          variant="outline"
+                          @click.stop="onReservationBillings(r)"
+                        >
+                          {{ i18n.popover.billings }}
+                        </UButton>
                       </div>
                     </div>
                   </template>

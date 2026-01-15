@@ -65,7 +65,16 @@ const toast = useToast();
 
 const formId = "reservation-detail-form";
 
-const activeTab = ref<"info" | "billings">("info");
+const activeTab = ref<"info" | "billings">(
+  route.query.tab === "billings" ? "billings" : "info"
+);
+
+watch(
+  () => route.query.tab,
+  (value) => {
+    activeTab.value = value === "billings" ? "billings" : "info";
+  }
+);
 
 const tabItems = computed<TabsItem[]>(() => [
   { label: "Información", value: "info", slot: "info" },

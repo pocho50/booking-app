@@ -2,6 +2,7 @@ import type { CalendarRepository } from "../../domain/calendar/CalendarRepositor
 import type { CalendarResourceDto } from "../../../shared/types/calendar";
 import { prisma } from "../../utils/db";
 import { dateToIsoLocal } from "../../utils/date";
+import { calculateReservationSaldo } from "../../utils/reservationSaldo";
 
 export class PrismaCalendarRepository implements CalendarRepository {
   async listResourcesWithReservations(params: {
@@ -27,6 +28,7 @@ export class PrismaCalendarRepository implements CalendarRepository {
                 last_name: true,
               },
             },
+            billings: { select: { amount: true } },
           },
         },
       },
@@ -42,6 +44,7 @@ export class PrismaCalendarRepository implements CalendarRepository {
         confirmed: res.confirmed ? 1 : 0,
         active: res.active ? 1 : 0,
         price: res.price,
+        saldo: calculateReservationSaldo(res.price, res.billings),
         clientFirstName: res.client?.name,
         clientLastName: res.client?.last_name,
       })),
