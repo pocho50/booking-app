@@ -21,8 +21,7 @@ export function useReservationBillings(reservationId: Ref<string>) {
     error,
   } = useAsyncData<BillingDto[]>(
     () => `reservation-${reservationId.value}-billings`,
-    () => listBillingsByReservation(reservationId.value),
-    { default: () => [] }
+    () => listBillingsByReservation(reservationId.value)
   );
 
   const billings = computed(() => billingsData.value ?? []);

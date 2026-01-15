@@ -41,6 +41,7 @@ const {
     r.start_date,
     r.end_date,
     r.price,
+    r.saldo,
   ],
 });
 
@@ -67,6 +68,26 @@ const columns: TableColumn<ReservationListItemDto>[] = [
       },
     },
     cell: ({ row }) => formatMoney(row.original.price),
+  },
+  {
+    accessorKey: "saldo",
+    header: "Saldo",
+    meta: {
+      class: {
+        th: "text-right",
+        td: "text-right",
+      },
+    },
+    cell: ({ row }) =>
+      h(
+        UBadge as any,
+        {
+          size: "md",
+          variant: "subtle",
+          color: row.original.saldo <= 0 ? "success" : "error",
+        },
+        () => formatMoney(row.original.saldo)
+      ),
   },
   {
     accessorKey: "confirmed",

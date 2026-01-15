@@ -10,7 +10,6 @@ import {
 } from "../../services/resourceService";
 import type { ReservationDto } from "../../../shared/types/reservation";
 import { formatMoney } from "../../../shared/utils/moneyFormat";
-import { useReservationBalance } from "../../composables/useReservationBalance";
 
 const route = useRoute();
 const id = computed(() => String(route.params.id));
@@ -25,10 +24,19 @@ const {
   () => getReservation(id.value)
 );
 
-const reservationPrice = computed(() => reservation.value?.price ?? 0);
+const billingsPending = ref(false);
 
-const { billingsPending, saldo, onBillingsTotalChange } =
-  useReservationBalance(reservationPrice);
+const saldo = computed(
+  () => reservation.value?.saldo ?? reservation.value?.price ?? 0
+);
+
+function onBillingsPendingChange(pending: boolean) {
+  billingsPending.value = pending;
+}
+
+function onBillingsUpdated() {
+  refresh();
+}
 
 const { data: resourcesData } = await useAsyncData<ResourceDto[]>(
   "resources-for-reservation-detail",
@@ -176,7 +184,8 @@ const deleteDescription = computed(() => {
             <template #billings>
               <ReservationDetailBillingsTab
                 :reservation-id="id"
-                @billings-total-change="onBillingsTotalChange"
+                @billings-pending-change="onBillingsPendingChange"
+                @billings-updated="onBillingsUpdated"
               />
             </template>
           </UTabs>

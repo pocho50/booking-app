@@ -6,6 +6,7 @@ export type ReservationDto = {
   id_client: string | null;
   observation?: string | null;
   price: number;
+  saldo?: number;
   confirmed: boolean;
   active: boolean;
 };
@@ -17,6 +18,7 @@ export type ReservationListItemDto = {
   start_date: string;
   end_date: string;
   price: number;
+  saldo: number;
   confirmed: boolean;
 };
 

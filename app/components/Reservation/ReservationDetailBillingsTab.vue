@@ -19,7 +19,8 @@ type Props = {
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  billingsTotalChange: [payload: { total: number; pending: boolean }];
+  billingsUpdated: [];
+  billingsPendingChange: [pending: boolean];
 }>();
 
 const toast = useToast();
@@ -38,16 +39,13 @@ const {
   remove,
 } = useReservationBillings(reservationIdRef);
 
-const billingsTotal = computed(() =>
-  billings.value.reduce((acc, b) => acc + (b.amount ?? 0), 0)
+watch(
+  pending,
+  (value) => {
+    emit("billingsPendingChange", value);
+  },
+  { immediate: true }
 );
-
-watchEffect(() => {
-  emit("billingsTotalChange", {
-    total: billingsTotal.value,
-    pending: pending.value,
-  });
-});
 
 type BillingFormSchema = Omit<BillingCreateSchema, "id_reservation">;
 
@@ -80,6 +78,7 @@ async function confirmDelete() {
 
   try {
     await remove(billingToDelete.value.id);
+    emit("billingsUpdated");
     toast.add({
       title: "Cobro eliminado",
       description: "Se eliminó correctamente.",
@@ -105,6 +104,7 @@ async function onCreate(event: FormSubmitEvent<BillingFormSchema>) {
     };
 
     await create(input);
+    emit("billingsUpdated");
     toast.add({
       title: "Cobro agregado",
       description: "Se agregó correctamente.",
