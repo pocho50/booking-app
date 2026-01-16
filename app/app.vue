@@ -19,38 +19,7 @@ useSeoMeta({
 </script>
 
 <template>
-  <UApp>
-    <UHeader>
-      <template #left>
-        <NuxtLink to="/">
-          <AppLogo class="shrink-0" />
-        </NuxtLink>
-      </template>
-
-      <template #right>
-        <AppNav />
-        <UColorModeButton />
-      </template>
-    </UHeader>
-
-    <UMain>
-      <UContainer>
-        <NuxtPage />
-      </UContainer>
-    </UMain>
-
-    <USeparator
-      :avatar="{
-        src: '/logov2.png',
-      }"
-    />
-
-    <UFooter>
-      <template #left>
-        <p class="text-sm text-muted">
-          Reservation app • © {{ new Date().getFullYear() }}
-        </p>
-      </template>
-    </UFooter>
-  </UApp>
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
 </template>
