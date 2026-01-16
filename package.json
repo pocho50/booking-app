@@ -7,8 +7,12 @@
     "dev": "nuxt dev",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare && prisma generate",
+    "seed": "prisma db seed",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.82",
