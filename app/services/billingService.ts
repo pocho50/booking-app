@@ -4,21 +4,27 @@ import type {
 } from "../../shared/types/billing";
 
 export async function listBillingsByReservation(reservationId: string) {
-  return $fetch<BillingDto[]>(`/api/reservations/${reservationId}/billings`);
+  const { $api } = useNuxtApp();
+
+  return $api<BillingDto[]>(`/reservations/${reservationId}/billings`);
 }
 
 export async function createBillingForReservation(
   reservationId: string,
   data: BillingCreateForReservationInput
 ) {
-  return $fetch<BillingDto>(`/api/reservations/${reservationId}/billings`, {
+  const { $api } = useNuxtApp();
+
+  return $api<BillingDto>(`/reservations/${reservationId}/billings`, {
     method: "POST",
     body: data,
   });
 }
 
 export async function deleteBilling(billingId: string) {
-  return $fetch<void>(`/api/billings/${billingId}`, {
+  const { $api } = useNuxtApp();
+
+  return $api<void>(`/billings/${billingId}`, {
     method: "DELETE",
   });
 }

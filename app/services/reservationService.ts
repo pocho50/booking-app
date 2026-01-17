@@ -6,32 +6,42 @@ import type {
 } from "../../shared/types/reservation";
 
 export async function listReservations(): Promise<ReservationListItemDto[]> {
-  return $fetch<ReservationListItemDto[]>("/api/reservations");
+  const { $api } = useNuxtApp();
+
+  return $api<ReservationListItemDto[]>("/reservations");
 }
 
 export async function createReservation(data: ReservationCreateInput) {
-  return $fetch<ReservationDto>("/api/reservations", {
+  const { $api } = useNuxtApp();
+
+  return $api<ReservationDto>("/reservations", {
     method: "POST",
     body: data,
   });
 }
 
 export async function getReservation(id: string) {
-  return $fetch<ReservationDto>(`/api/reservations/${id}`);
+  const { $api } = useNuxtApp();
+
+  return $api<ReservationDto>(`/reservations/${id}`);
 }
 
 export async function updateReservation(
   id: string,
   data: ReservationUpdateInput
 ) {
-  return $fetch<ReservationDto>(`/api/reservations/${id}`, {
+  const { $api } = useNuxtApp();
+
+  return $api<ReservationDto>(`/reservations/${id}`, {
     method: "PUT",
     body: data,
   });
 }
 
 export async function deleteReservation(id: string) {
-  return $fetch<void>(`/api/reservations/${id}`, {
+  const { $api } = useNuxtApp();
+
+  return $api<void>(`/reservations/${id}`, {
     method: "DELETE",
   });
 }

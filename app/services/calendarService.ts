@@ -4,7 +4,9 @@ export async function listCalendarResources(params: {
   month: number;
   year: number;
 }) {
-  return $fetch<CalendarResourceDto[]>("/api/calendar/resources", {
+  const { $api } = useNuxtApp();
+
+  return $api<CalendarResourceDto[]>("/calendar/resources", {
     query: params,
   });
 }

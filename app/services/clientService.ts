@@ -7,17 +7,23 @@ import type {
 export type { ClientCreateInput, ClientDto, ClientUpdateInput };
 
 export async function listClients(): Promise<ClientDto[]> {
-  return $fetch<ClientDto[]>("/api/clients");
+  const { $api } = useNuxtApp();
+
+  return $api<ClientDto[]>("/clients");
 }
 
 export async function getClient(id: string): Promise<ClientDto> {
-  return $fetch<ClientDto>(`/api/clients/${id}`);
+  const { $api } = useNuxtApp();
+
+  return $api<ClientDto>(`/clients/${id}`);
 }
 
 export async function createClient(
   data: ClientCreateInput
 ): Promise<ClientDto> {
-  return $fetch<ClientDto>("/api/clients", {
+  const { $api } = useNuxtApp();
+
+  return $api<ClientDto>("/clients", {
     method: "POST",
     body: data,
   });
@@ -27,7 +33,9 @@ export async function updateClient(
   id: string,
   data: ClientUpdateInput
 ): Promise<ClientDto> {
-  return $fetch<ClientDto>(`/api/clients/${id}`, {
+  const { $api } = useNuxtApp();
+
+  return $api<ClientDto>(`/clients/${id}`, {
     method: "PUT",
     body: data,
   });
