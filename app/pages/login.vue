@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
+import { loginSchema, type LoginSchema } from "../../shared/schemas/auth";
+import { loginUser } from "../services/authService";
 
 definePageMeta({
   layout: "blank",
@@ -15,8 +17,29 @@ const state = reactive<LoginFormState>({
   password: "",
 });
 
-function onSubmit(_event: FormSubmitEvent<LoginFormState>) {
-  // TODO: Hook up authentication
+const loading = ref(false);
+const toast = useToast();
+const { fetch: refreshSession } = useUserSession();
+
+async function onSubmit(event: FormSubmitEvent<LoginSchema>) {
+  try {
+    loading.value = true;
+    await loginUser(event.data);
+    await refreshSession();
+    await navigateTo("/");
+  } catch (error: any) {
+    toast.add({
+      title: "Error",
+      description:
+        error?.data?.statusMessage ||
+        error?.data?.message ||
+        error?.message ||
+        "No se pudo iniciar sesión.",
+      color: "error",
+    });
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 
@@ -51,7 +74,12 @@ function onSubmit(_event: FormSubmitEvent<LoginFormState>) {
       </div>
 
       <UCard class="mt-8 border border-default bg-elevated/60 shadow-sm">
-        <UForm class="space-y-5" :state="state" @submit="onSubmit">
+        <UForm
+          class="space-y-5"
+          :schema="loginSchema"
+          :state="state"
+          @submit="onSubmit"
+        >
           <UFormField label="Usuario" name="username" required>
             <UInput
               v-model="state.username"
@@ -71,7 +99,12 @@ function onSubmit(_event: FormSubmitEvent<LoginFormState>) {
             />
           </UFormField>
 
-          <UButton type="submit" class="w-full justify-center">
+          <UButton
+            type="submit"
+            class="w-full justify-center"
+            :loading="loading"
+            :disabled="loading"
+          >
             Ingresar
           </UButton>
         </UForm>

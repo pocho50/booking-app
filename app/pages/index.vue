@@ -90,6 +90,7 @@ async function onBillingsUpdated() {
     <UDrawer
       v-model:open="reservationDrawerOpen"
       :title="drawerTitle"
+      description="Formulario para crear o editar la reserva seleccionada."
       direction="right"
       :dismissible="true"
       :ui="{ content: 'w-[420px] sm:w-[520px] max-w-[90vw]' }"
@@ -167,6 +168,7 @@ async function onBillingsUpdated() {
     <UDrawer
       v-model:open="billingsDrawerOpen"
       :title="billingsDrawerTitle"
+      description="Listado y formulario de cobros de la reserva."
       direction="right"
       :dismissible="true"
       :ui="{ content: 'w-[520px] sm:w-[680px] max-w-[90vw]' }"

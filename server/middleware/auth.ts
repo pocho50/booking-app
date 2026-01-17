@@ -1,13 +1,11 @@
 export default defineEventHandler(async (event) => {
-  const path = event.path || "";
+  const { pathname } = getRequestURL(event);
 
-  if (!path.startsWith("/api")) {
-    return;
+  if (
+    pathname.startsWith("/api/") &&
+    pathname !== "/api/auth/login" &&
+    pathname !== "/api/auth/logout"
+  ) {
+    await requireUserSession(event);
   }
-
-  if (path === "/api/auth/login") {
-    return;
-  }
-
-  await requireUserSession(event);
 });
