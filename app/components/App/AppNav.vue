@@ -1,6 +1,11 @@
 <script setup>
 const items = ref([
   {
+    label: "Calendario",
+    icon: "i-lucide-calendar",
+    to: "/",
+  },
+  {
     label: "Clientes",
     icon: "i-lucide-users",
     to: "/clientes",
