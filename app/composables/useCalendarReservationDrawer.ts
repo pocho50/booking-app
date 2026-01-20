@@ -64,7 +64,7 @@ export function useCalendarReservationDrawer(params: {
   });
 
   const drawerTitle = computed(() =>
-    editingReservationId.value ? "Editar reserva" : "Nueva reserva"
+    editingReservationId.value ? "Editar reserva" : "Nueva reserva",
   );
 
   const billingsDrawerTitle = computed(() => {
@@ -92,7 +92,7 @@ export function useCalendarReservationDrawer(params: {
 
   function onAvailableDayClick(payload: AvailableDayClickPayload) {
     const found = (params.resources.value || []).find(
-      (r) => String(r.id) === String(payload.resourceId)
+      (r) => String(r.id) === String(payload.resourceId),
     );
     selectedReservationResource.value = found ?? null;
 
@@ -110,7 +110,7 @@ export function useCalendarReservationDrawer(params: {
     }
 
     const found = (params.resources.value || []).find(
-      (r) => String(r.id) === String(payload.resourceId)
+      (r) => String(r.id) === String(payload.resourceId),
     );
     selectedReservationResource.value = found ?? null;
 
@@ -206,14 +206,34 @@ export function useCalendarReservationDrawer(params: {
     billingsReservation.value = null;
   }
 
-  function openBillingsById(reservationId: string) {
+  function findCalendarReservationById(reservationId: string) {
+    return (params.resources.value || [])
+      .flatMap((resource) => resource.reservations || [])
+      .find((reservation) => reservation.id === reservationId);
+  }
+
+  function openBillingsById(
+    reservationId: string,
+    reservation?: CalendarReservationDto | null,
+  ) {
+    const fallback = findCalendarReservationById(reservationId);
+    const mergedReservation = reservation
+      ? {
+          ...fallback,
+          ...reservation,
+          clientFirstName:
+            reservation.clientFirstName ?? fallback?.clientFirstName,
+          clientLastName:
+            reservation.clientLastName ?? fallback?.clientLastName,
+        }
+      : (fallback ?? null);
     billingsReservationId.value = reservationId;
-    billingsReservation.value = null;
+    billingsReservation.value = mergedReservation;
     billingsDrawerOpen.value = true;
   }
 
   function syncEditingReservationSaldoFromCalendar(
-    resources: CalendarResourceDto[]
+    resources: CalendarResourceDto[],
   ) {
     if (!editingReservationId.value || !reservationInitialValues.value) {
       return;

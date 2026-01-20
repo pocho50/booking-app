@@ -161,7 +161,7 @@ const fromYearValue = computed(() => props.fromYear ?? yearModel.value - 3);
 const toYearValue = computed(() => props.toYear ?? yearModel.value + 2);
 
 const monthOptions = computed(() =>
-  i18n.value.months.map((label, idx) => ({ label, value: idx + 1 }))
+  i18n.value.months.map((label, idx) => ({ label, value: idx + 1 })),
 );
 
 const yearOptions = computed(() => {
@@ -173,7 +173,7 @@ const yearOptions = computed(() => {
 });
 
 const daysInMonth = computed(() =>
-  new Date(yearModel.value, monthModel.value, 0).getDate()
+  new Date(yearModel.value, monthModel.value, 0).getDate(),
 );
 
 function parseIsoDate(value: string) {
@@ -258,7 +258,7 @@ const resourcesWithGrid = computed<CalendarResourceWithGrid[]>(() => {
             dayMap.get(d)?.push(reservationWithIdx);
           }
         }
-      }
+      },
     );
 
     const cells = days.value.map(({ day }) => {
@@ -353,7 +353,7 @@ function onReservationBillings(reservation: CalendarReservation) {
 
 function onReservationEdit(
   reservation: CalendarReservation,
-  resourceId: string
+  resourceId: string,
 ) {
   emit("reservation-edit", {
     reservationId: reservation.id ?? null,
@@ -366,7 +366,7 @@ function onReservationEdit(
 
 function onReservationClick(
   reservation: CalendarReservation,
-  resourceId: string
+  resourceId: string,
 ) {
   emit("reservation-click", {
     reservationId: reservation.id ?? null,
@@ -526,7 +526,7 @@ function getReservationButtonUi(reservation: CalendarReservation) {
                     icon="i-lucide-home"
                     :ui="getReservationButtonUi(r)"
                     :aria-label="`${i18n.labels.details}: ${getReservationTitle(
-                      r
+                      r,
                     )}`"
                     @click.stop="onReservationClick(r, resource.id)"
                   />

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { listCalendarResources } from "../services/calendarService";
-import type { CalendarResourceDto } from "../../shared/types/calendar";
+import type {
+  CalendarReservationDto,
+  CalendarResourceDto,
+} from "../../shared/types/calendar";
+import type { ReservationDto } from "../../shared/types/reservation";
+import { formatIsoDateTo } from "../../shared/utils/dateFormat";
 import { formatMoney } from "../../shared/utils/moneyFormat";
 
 const today = new Date();
@@ -16,11 +21,11 @@ const {
 } = useAsyncData<CalendarResourceDto[]>(
   "calendar-resources",
   () => listCalendarResources({ month: month.value, year: year.value }),
-  { watch: [month, year] }
+  { watch: [month, year] },
 );
 
 const resources = computed<CalendarResourceDto[]>(
-  () => resourcesData.value ?? []
+  () => resourcesData.value ?? [],
 );
 
 const {
@@ -51,6 +56,20 @@ const {
   resources,
   refreshResources,
 });
+
+function mapReservationToCalendarDto(
+  reservation: ReservationDto,
+): CalendarReservationDto {
+  return {
+    id: reservation.id,
+    startDate: reservation.start_date,
+    endDate: reservation.end_date,
+    confirmed: reservation.confirmed ? 1 : 0,
+    active: reservation.active ? 1 : 0,
+    price: reservation.price,
+    saldo: reservation.saldo,
+  };
+}
 
 async function onMonthChange() {
   loading.value = true;
@@ -114,7 +133,7 @@ async function onBillingsUpdated() {
                   formatMoney(
                     reservationInitialValues.saldo ??
                       reservationInitialValues.price ??
-                      0
+                      0,
                   )
                 }}
               </div>
@@ -123,7 +142,12 @@ async function onBillingsUpdated() {
               size="xs"
               color="neutral"
               variant="outline"
-              @click="openBillingsById(editingReservationId)"
+              @click="
+                openBillingsById(
+                  editingReservationId,
+                  mapReservationToCalendarDto(reservationInitialValues),
+                )
+              "
             >
               Ver cobros
             </UButton>
@@ -176,6 +200,73 @@ async function onBillingsUpdated() {
     >
       <template #body>
         <div v-if="billingsReservationId" class="space-y-4">
+          <div
+            v-if="billingsReservation"
+            class="rounded-lg border border-default bg-elevated/40 p-4"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div class="text-xs uppercase tracking-wide text-muted">
+                  Saldo
+                </div>
+                <div class="text-lg font-semibold text-highlighted">
+                  {{
+                    formatMoney(
+                      billingsReservation.saldo ??
+                        billingsReservation.price ??
+                        0,
+                    )
+                  }}
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <UBadge
+                  size="sm"
+                  variant="subtle"
+                  :color="
+                    billingsReservation.confirmed === 0 ? 'warning' : 'success'
+                  "
+                >
+                  {{
+                    billingsReservation.confirmed === 0
+                      ? "No confirmado"
+                      : "Confirmado"
+                  }}
+                </UBadge>
+                <UBadge
+                  size="sm"
+                  variant="subtle"
+                  :color="
+                    billingsReservation.active === 0 ? 'neutral' : 'success'
+                  "
+                >
+                  {{ billingsReservation.active === 0 ? "Inactivo" : "Activo" }}
+                </UBadge>
+              </div>
+            </div>
+            <div class="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+              <div class="flex items-center gap-3">
+                <span class="text-muted">Inicio</span>
+                <span class="font-medium">
+                  {{
+                    billingsReservation.startDate
+                      ? formatIsoDateTo(billingsReservation.startDate)
+                      : "-"
+                  }}
+                </span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-muted">Fin</span>
+                <span class="font-medium">
+                  {{
+                    billingsReservation.endDate
+                      ? formatIsoDateTo(billingsReservation.endDate)
+                      : "-"
+                  }}
+                </span>
+              </div>
+            </div>
+          </div>
           <ReservationDetailBillingsTab
             :reservation-id="billingsReservationId"
             @billings-updated="onBillingsUpdated"
