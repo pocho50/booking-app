@@ -50,18 +50,18 @@ async function onLogout() {
       </UContainer>
     </UMain>
 
-    <USeparator
+    <!-- <USeparator
       :avatar="{
         src: '/logov2.png',
       }"
-    />
+    /> -->
 
-    <UFooter>
+    <!-- <UFooter>
       <template #left>
         <p class="text-sm text-muted">
           Reservation app • © {{ new Date().getFullYear() }}
         </p>
       </template>
-    </UFooter>
+    </UFooter> -->
   </UApp>
 </template>

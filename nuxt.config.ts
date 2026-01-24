@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ["@nuxt/eslint", "@nuxt/ui", "nuxt-auth-utils"],
+  modules: ["@nuxt/eslint", "@nuxt/ui", "nuxt-auth-utils", "@nuxtjs/mdc"],
 
   alias: {
     "#prisma-client": new URL("./prisma/generated/client.js", import.meta.url)
@@ -18,6 +18,10 @@ export default defineNuxtConfig({
   },
 
   css: ["~/assets/css/main.css"],
+
+  runtimeConfig: {
+    aiGatewayApiKey: "",
+  },
 
   compatibilityDate: "2025-01-15",
 

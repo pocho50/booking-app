@@ -28,3 +28,4 @@ dev.db
 dev.db-*
 
 prisma/generated
+.devtools
