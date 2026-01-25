@@ -12,49 +12,7 @@ import { readFileSync } from "node:fs";
 import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { z } from "zod";
 import { prisma } from "../utils/db";
-
-const toJsonSafe = (value: unknown): unknown => {
-  if (value instanceof Date) {
-    return value.toISOString();
-  }
-
-  if (typeof value === "bigint") {
-    return value.toString();
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((item) => toJsonSafe(item));
-  }
-
-  if (value && typeof value === "object") {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, entry]) => [key, toJsonSafe(entry)]),
-    );
-  }
-
-  return value;
-};
-
-const validateSql = (sql: string): void => {
-  const normalized = sql.trim().replace(/;+$|;+(\s*)$/g, "");
-  const lower = normalized.toLowerCase();
-
-  if (!lower.startsWith("select")) {
-    throw new Error("Only SELECT queries are allowed");
-  }
-
-  if (normalized.includes(";")) {
-    throw new Error("Multiple statements are not allowed");
-  }
-
-  if (lower.includes("information_schema") || lower.includes("pg_catalog")) {
-    throw new Error("System schemas are not allowed");
-  }
-
-  if (/\b(insert|update|delete|drop|alter|truncate|create)\b/i.test(lower)) {
-    throw new Error("Mutating queries are not allowed");
-  }
-};
+import { toJsonSafe, validateSql } from "../utils/sql";
 
 export default defineLazyEventHandler(async () => {
   const apiKey = useRuntimeConfig().aiGatewayApiKey;
@@ -66,7 +24,7 @@ export default defineLazyEventHandler(async () => {
   const schema = readFileSync("prisma/schema.prisma", "utf8");
 
   const model = wrapLanguageModel({
-    model: gateway("anthropic/claude-opus-4.5"),
+    model: gateway("deepseek/deepseek-v3.2"),
     middleware: devToolsMiddleware(),
   });
 
@@ -78,7 +36,13 @@ export default defineLazyEventHandler(async () => {
       system: `Tienes los siguientes datos en la base de datos (o esquema Prisma) ${schema}
 
 Genera un SQL SELECT seguro que responda a la pregunta del usuario.
+Antes de ejecutar, revisa el SQL como si fueras un revisor senior:
+- ¿Responde realmente la pregunta?
+- ¿Hay errores logicos o duplicaciones?
+- ¿Podria devolver datos incorrectos?
+Si detectas problemas, corrige el SQL antes de ejecutarlo.
 Puedes hacer mas de una consulta SQL si hace falta validar o corregir el resultado.
+Si el tool devuelve un error, corrige el SQL y reintenta (maximo 2 reintentos).
 Usa la herramienta executeSql para ejecutar la consulta y luego responde usando el resultado.
 
 Puedes devolver la información de la manera que consideres más clara:
@@ -112,6 +76,14 @@ Puedes devolver la información de la manera que consideres más clara:
             const normalized = sql.trim().replace(/;+$|;+(\s*)$/g, "");
 
             validateSql(normalized);
+
+            try {
+              await prisma.$queryRawUnsafe(`EXPLAIN QUERY PLAN ${normalized}`);
+            } catch (error) {
+              throw new Error(
+                `SQL validation failed. Please fix the query. Details: ${String(error)}`,
+              );
+            }
 
             const rows = await prisma.$queryRawUnsafe(normalized);
 
