@@ -35,6 +35,27 @@ const toJsonSafe = (value: unknown): unknown => {
   return value;
 };
 
+const validateSql = (sql: string): void => {
+  const normalized = sql.trim().replace(/;+$|;+(\s*)$/g, "");
+  const lower = normalized.toLowerCase();
+
+  if (!lower.startsWith("select")) {
+    throw new Error("Only SELECT queries are allowed");
+  }
+
+  if (normalized.includes(";")) {
+    throw new Error("Multiple statements are not allowed");
+  }
+
+  if (lower.includes("information_schema") || lower.includes("pg_catalog")) {
+    throw new Error("System schemas are not allowed");
+  }
+
+  if (/\b(insert|update|delete|drop|alter|truncate|create)\b/i.test(lower)) {
+    throw new Error("Mutating queries are not allowed");
+  }
+};
+
 export default defineLazyEventHandler(async () => {
   const apiKey = useRuntimeConfig().aiGatewayApiKey;
   if (!apiKey) throw new Error("Missing AI Gateway API key");
@@ -89,9 +110,8 @@ Puedes devolver la información de la manera que consideres más clara:
           ),
           execute: async ({ sql }: { sql: string }) => {
             const normalized = sql.trim().replace(/;+$|;+(\s*)$/g, "");
-            if (!normalized.toLowerCase().startsWith("select")) {
-              throw new Error("Only SELECT queries are allowed");
-            }
+
+            validateSql(normalized);
 
             const rows = await prisma.$queryRawUnsafe(normalized);
 
