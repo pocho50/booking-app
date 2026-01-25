@@ -3,10 +3,37 @@ import {
   UIMessage,
   convertToModelMessages,
   createGateway,
+  stepCountIs,
+  tool,
+  zodSchema,
   wrapLanguageModel,
 } from "ai";
-
+import { readFileSync } from "node:fs";
 import { devToolsMiddleware } from "@ai-sdk/devtools";
+import { z } from "zod";
+import { prisma } from "../utils/db";
+
+const toJsonSafe = (value: unknown): unknown => {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (typeof value === "bigint") {
+    return value.toString();
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => toJsonSafe(item));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, toJsonSafe(entry)]),
+    );
+  }
+
+  return value;
+};
 
 export default defineLazyEventHandler(async () => {
   const apiKey = useRuntimeConfig().aiGatewayApiKey;
@@ -15,8 +42,10 @@ export default defineLazyEventHandler(async () => {
     apiKey: apiKey,
   });
 
+  const schema = readFileSync("prisma/schema.prisma", "utf8");
+
   const model = wrapLanguageModel({
-    model: gateway("anthropic/claude-sonnet-4.5"),
+    model: gateway("anthropic/claude-opus-4.5"),
     middleware: devToolsMiddleware(),
   });
 
@@ -25,7 +54,51 @@ export default defineLazyEventHandler(async () => {
 
     const result = streamText({
       model,
+      system: `Tienes los siguientes datos en la base de datos (o esquema Prisma) ${schema}
+
+Genera un SQL SELECT seguro que responda a la pregunta del usuario.
+Puedes hacer mas de una consulta SQL si hace falta validar o corregir el resultado.
+Usa la herramienta executeSql para ejecutar la consulta y luego responde usando el resultado.
+
+Puedes devolver la información de la manera que consideres más clara:
+- Una tabla HTML
+- Una lista
+- Texto resumido
+- Cualquier combinación que facilite la lectura del reporte
+
+⚠️ Solo asegúrate de que los datos sean correctos y que si generas HTML sea seguro`,
       messages: await convertToModelMessages(messages),
+      stopWhen: stepCountIs(5),
+      onStepFinish: (step) => {
+        console.log("[chat] step", {
+          toolCalls: step.toolCalls.length,
+          toolResults: step.toolResults.length,
+          finishReason: step.finishReason,
+        });
+      },
+      onError: (error) => {
+        console.error("[chat] stream error", error);
+      },
+      tools: {
+        executeSql: tool({
+          description: "Ejecuta una consulta SELECT en la base de datos",
+          inputSchema: zodSchema(
+            z.object({
+              sql: z.string().min(1),
+            }),
+          ),
+          execute: async ({ sql }: { sql: string }) => {
+            const normalized = sql.trim().replace(/;+$|;+(\s*)$/g, "");
+            if (!normalized.toLowerCase().startsWith("select")) {
+              throw new Error("Only SELECT queries are allowed");
+            }
+
+            const rows = await prisma.$queryRawUnsafe(normalized);
+
+            return toJsonSafe(rows);
+          },
+        }),
+      },
     });
 
     return result.toUIMessageStreamResponse();
