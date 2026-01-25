@@ -12,6 +12,7 @@ enum Role {
   ADMIN
 }
 
+// Application users with authentication credentials and access role.
 model User {
   id       String @id @default(uuid())
   name     String
@@ -22,6 +23,7 @@ model User {
   @@map("users")
 }
 
+// Customers who make reservations and hold contact details.
 model Client {
   id        String @id @default(uuid())
   name      String
@@ -38,6 +40,7 @@ model Client {
   @@map("clients")
 }
 
+// Reservable assets or services available for booking.
 model Resource {
   id          String @id @default(uuid())
   name        String
@@ -48,6 +51,7 @@ model Resource {
   @@map("resources")
 }
 
+// Bookings that link clients to resources over a time range.
 model Reservation {
   id           String   @id @default(uuid())
   start_date   DateTime
@@ -60,7 +64,7 @@ model Reservation {
   confirmed Boolean @default(false)
   active    Boolean @default(true)
 
-  billings Billing[]
+  payments Payment[]
 
   resource Resource @relation(fields: [id_resource], references: [id])
   client   Client?  @relation(fields: [id_client], references: [id])
@@ -68,7 +72,8 @@ model Reservation {
   @@map("reservations")
 }
 
-model Billing {
+// Payment records associated with reservations.
+model Payment {
   id             String   @id @default(uuid())
   date           DateTime
   id_reservation String
@@ -78,5 +83,5 @@ model Billing {
   reservation Reservation @relation(fields: [id_reservation], references: [id])
 
   @@index([id_reservation])
-  @@map("billings")
+  @@map("payments")
 }

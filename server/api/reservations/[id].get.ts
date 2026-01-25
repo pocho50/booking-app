@@ -1,6 +1,6 @@
 import { getReservationById } from "../../application/reservation/getReservationById";
-import { listBillingsByReservation } from "../../application/billing/listBillingsByReservation";
-import { PrismaBillingRepository } from "../../infrastructure/prisma/PrismaBillingRepository";
+import { listPaymentsByReservation } from "../../application/payment/listPaymentsByReservation";
+import { PrismaPaymentRepository } from "../../infrastructure/prisma/PrismaPaymentRepository";
 import { PrismaReservationRepository } from "../../infrastructure/prisma/PrismaReservationRepository";
 import { calculateReservationSaldo } from "../../utils/reservationSaldo";
 import { reservationToDto } from "../../utils/reservationDto";
@@ -21,10 +21,10 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const billingRepo = new PrismaBillingRepository();
-  const billings = await listBillingsByReservation(billingRepo, id);
+  const paymentRepo = new PrismaPaymentRepository();
+  const payments = await listPaymentsByReservation(paymentRepo, id);
   return {
     ...reservationToDto(reservation),
-    saldo: calculateReservationSaldo(reservation.price, billings),
+    saldo: calculateReservationSaldo(reservation.price, payments),
   };
 });

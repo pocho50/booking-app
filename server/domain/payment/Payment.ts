@@ -1,4 +1,4 @@
-export type Billing = {
+export type Payment = {
   id: string;
   date: Date;
   id_reservation: string;

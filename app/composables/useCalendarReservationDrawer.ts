@@ -28,7 +28,7 @@ type ReservationEditPayload = {
   resourceId: string;
 };
 
-type ReservationBillingsPayload = {
+type ReservationPaymentsPayload = {
   reservationId: string | null;
   reservation: CalendarReservationDto;
 };
@@ -47,9 +47,9 @@ export function useCalendarReservationDrawer(params: {
   const reservationInitialValues = ref<ReservationDto | null>(null);
   const reservationLoading = ref(false);
 
-  const billingsDrawerOpen = ref(false);
-  const billingsReservationId = ref<string | null>(null);
-  const billingsReservation = ref<CalendarReservationDto | null>(null);
+  const paymentsDrawerOpen = ref(false);
+  const paymentsReservationId = ref<string | null>(null);
+  const paymentsReservation = ref<CalendarReservationDto | null>(null);
 
   const deleteModalOpen = ref(false);
   const deleting = ref(false);
@@ -67,10 +67,10 @@ export function useCalendarReservationDrawer(params: {
     editingReservationId.value ? "Editar reserva" : "Nueva reserva",
   );
 
-  const billingsDrawerTitle = computed(() => {
-    const current = billingsReservation.value;
+  const paymentsDrawerTitle = computed(() => {
+    const current = paymentsReservation.value;
     if (!current) {
-      return "Cobros";
+      return "Pagos";
     }
 
     const name = `${current.clientFirstName || ""} ${
@@ -79,7 +79,7 @@ export function useCalendarReservationDrawer(params: {
       .trim()
       .replace(/^\s+|\s+$/g, "");
 
-    return name ? `Cobros • ${name}` : "Cobros";
+    return name ? `Pagos • ${name}` : "Pagos";
   });
 
   function parseIsoFromCalendarClick({
@@ -98,7 +98,7 @@ export function useCalendarReservationDrawer(params: {
 
     editingReservationId.value = null;
     reservationInitialValues.value = null;
-    billingsDrawerOpen.value = false;
+    paymentsDrawerOpen.value = false;
 
     selectedReservationIsoDate.value = parseIsoFromCalendarClick(payload);
     reservationDrawerOpen.value = true;
@@ -115,7 +115,7 @@ export function useCalendarReservationDrawer(params: {
     selectedReservationResource.value = found ?? null;
 
     editingReservationId.value = payload.reservationId;
-    billingsDrawerOpen.value = false;
+    paymentsDrawerOpen.value = false;
     reservationDrawerOpen.value = true;
     reservationLoading.value = true;
 
@@ -189,21 +189,21 @@ export function useCalendarReservationDrawer(params: {
     reservationInitialValues.value = null;
   }
 
-  function onReservationBillings(payload: ReservationBillingsPayload) {
+  function onReservationPayments(payload: ReservationPaymentsPayload) {
     if (!payload.reservationId) {
       return;
     }
 
-    billingsReservationId.value = payload.reservationId;
-    billingsReservation.value = payload.reservation;
+    paymentsReservationId.value = payload.reservationId;
+    paymentsReservation.value = payload.reservation;
     reservationDrawerOpen.value = false;
-    billingsDrawerOpen.value = true;
+    paymentsDrawerOpen.value = true;
   }
 
-  function onBillingsDrawerClose() {
-    billingsDrawerOpen.value = false;
-    billingsReservationId.value = null;
-    billingsReservation.value = null;
+  function onPaymentsDrawerClose() {
+    paymentsDrawerOpen.value = false;
+    paymentsReservationId.value = null;
+    paymentsReservation.value = null;
   }
 
   function findCalendarReservationById(reservationId: string) {
@@ -212,7 +212,7 @@ export function useCalendarReservationDrawer(params: {
       .find((reservation) => reservation.id === reservationId);
   }
 
-  function openBillingsById(
+  function openPaymentsById(
     reservationId: string,
     reservation?: CalendarReservationDto | null,
   ) {
@@ -227,9 +227,9 @@ export function useCalendarReservationDrawer(params: {
             reservation.clientLastName ?? fallback?.clientLastName,
         }
       : (fallback ?? null);
-    billingsReservationId.value = reservationId;
-    billingsReservation.value = mergedReservation;
-    billingsDrawerOpen.value = true;
+    paymentsReservationId.value = reservationId;
+    paymentsReservation.value = mergedReservation;
+    paymentsDrawerOpen.value = true;
   }
 
   function syncEditingReservationSaldoFromCalendar(
@@ -292,21 +292,21 @@ export function useCalendarReservationDrawer(params: {
     editingReservationId,
     reservationInitialValues,
     reservationLoading,
-    billingsDrawerOpen,
-    billingsReservationId,
-    billingsReservation,
+    paymentsDrawerOpen,
+    paymentsReservationId,
+    paymentsReservation,
     deleteModalOpen,
     deleting,
     reservationDateLabel,
     drawerTitle,
-    billingsDrawerTitle,
+    paymentsDrawerTitle,
     onAvailableDayClick,
     onReservationEdit,
-    onReservationBillings,
+    onReservationPayments,
     onReservationSubmit,
     onReservationCancel,
-    onBillingsDrawerClose,
-    openBillingsById,
+    onPaymentsDrawerClose,
+    openPaymentsById,
     syncEditingReservationSaldoFromCalendar,
     confirmDeleteReservation,
   };

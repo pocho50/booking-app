@@ -10,7 +10,7 @@ export default defineEventHandler(async () => {
     include: {
       client: { select: { name: true, last_name: true } },
       resource: { select: { name: true } },
-      billings: { select: { amount: true } },
+      payments: { select: { amount: true } },
     },
   });
 
@@ -22,7 +22,7 @@ export default defineEventHandler(async () => {
       start_date: dateToIsoLocal(r.start_date),
       end_date: dateToIsoLocal(r.end_date),
       price: r.price,
-      saldo: calculateReservationSaldo(r.price, r.billings),
+      saldo: calculateReservationSaldo(r.price, r.payments),
       confirmed: r.confirmed,
     };
   });

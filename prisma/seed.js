@@ -111,13 +111,13 @@ async function findOrCreateReservation({
   });
 }
 
-async function findOrCreateBilling({
+async function findOrCreatePayment({
   reservationId,
   date,
   amount,
   observations,
 }) {
-  const existing = await prisma.billing.findFirst({
+  const existing = await prisma.payment.findFirst({
     where: {
       id_reservation: reservationId,
       date,
@@ -129,7 +129,7 @@ async function findOrCreateBilling({
     return existing;
   }
 
-  return prisma.billing.create({
+  return prisma.payment.create({
     data: {
       id_reservation: reservationId,
       date,
@@ -141,7 +141,7 @@ async function findOrCreateBilling({
 
 async function main() {
   await prisma.$transaction([
-    prisma.billing.deleteMany(),
+    prisma.payment.deleteMany(),
     prisma.reservation.deleteMany(),
     prisma.client.deleteMany(),
     prisma.resource.deleteMany(),
@@ -220,21 +220,21 @@ async function main() {
     observation: "Mantenimiento",
   });
 
-  await findOrCreateBilling({
+  await findOrCreatePayment({
     reservationId: reservationA.id,
     date: addDays(today, 1),
     amount: 200,
     observations: "Adelanto",
   });
 
-  await findOrCreateBilling({
+  await findOrCreatePayment({
     reservationId: reservationA.id,
     date: addDays(today, 4),
     amount: 220,
     observations: "Saldo",
   });
 
-  await findOrCreateBilling({
+  await findOrCreatePayment({
     reservationId: reservationB.id,
     date: addDays(today, 6),
     amount: 150,

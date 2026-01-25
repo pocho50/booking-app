@@ -1,15 +1,15 @@
-type BillingAmount = {
+type PaymentAmount = {
   amount: number;
 };
 
 export function calculateReservationSaldo(
   price: number,
-  billings: BillingAmount[]
+  payments: PaymentAmount[],
 ) {
-  const billingsTotal = billings.reduce(
-    (acc, billing) => acc + billing.amount,
-    0
+  const paymentsTotal = payments.reduce(
+    (acc, payment) => acc + payment.amount,
+    0,
   );
 
-  return price - billingsTotal;
+  return price - paymentsTotal;
 }

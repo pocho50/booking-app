@@ -21,26 +21,26 @@ const {
   error,
 } = await useAsyncData<ReservationDto>(
   () => `reservation-${id.value}`,
-  () => getReservation(id.value)
+  () => getReservation(id.value),
 );
 
-const billingsPending = ref(false);
+const paymentsPending = ref(false);
 
 const saldo = computed(
-  () => reservation.value?.saldo ?? reservation.value?.price ?? 0
+  () => reservation.value?.saldo ?? reservation.value?.price ?? 0,
 );
 
-function onBillingsPendingChange(pending: boolean) {
-  billingsPending.value = pending;
+function onPaymentsPendingChange(pending: boolean) {
+  paymentsPending.value = pending;
 }
 
-function onBillingsUpdated() {
+function onPaymentsUpdated() {
   refresh();
 }
 
 const { data: resourcesData } = await useAsyncData<ResourceDto[]>(
   "resources-for-reservation-detail",
-  () => listResources()
+  () => listResources(),
 );
 
 const resources = computed(() => resourcesData.value ?? []);
@@ -65,20 +65,20 @@ const toast = useToast();
 
 const formId = "reservation-detail-form";
 
-const activeTab = ref<"info" | "billings">(
-  route.query.tab === "billings" ? "billings" : "info"
+const activeTab = ref<"info" | "payments">(
+  route.query.tab === "payments" ? "payments" : "info",
 );
 
 watch(
   () => route.query.tab,
   (value) => {
-    activeTab.value = value === "billings" ? "billings" : "info";
-  }
+    activeTab.value = value === "payments" ? "payments" : "info";
+  },
 );
 
 const tabItems = computed<TabsItem[]>(() => [
   { label: "Información", value: "info", slot: "info" },
-  { label: "Cobros", value: "billings", slot: "billings" },
+  { label: "Pagos", value: "payments", slot: "payments" },
 ]);
 
 function requestDelete() {
@@ -133,7 +133,7 @@ const deleteDescription = computed(() => {
               >
                 {{ formatMoney(saldo) }}
               </UBadge>
-              <span v-if="billingsPending" class="text-dimmed"
+              <span v-if="paymentsPending" class="text-dimmed"
                 >(calculando...)</span
               >
             </div>
@@ -190,11 +190,11 @@ const deleteDescription = computed(() => {
               />
             </template>
 
-            <template #billings>
-              <ReservationDetailBillingsTab
+            <template #payments>
+              <ReservationDetailPaymentsTab
                 :reservation-id="id"
-                @billings-pending-change="onBillingsPendingChange"
-                @billings-updated="onBillingsUpdated"
+                @payments-pending-change="onPaymentsPendingChange"
+                @payments-updated="onPaymentsUpdated"
               />
             </template>
           </UTabs>

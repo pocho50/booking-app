@@ -2,13 +2,13 @@
 import type { FormSubmitEvent, TableColumn } from "@nuxt/ui";
 import { h, resolveComponent } from "vue";
 import type {
-  BillingCreateForReservationInput,
-  BillingDto,
-} from "../../../shared/types/billing";
+  PaymentCreateForReservationInput,
+  PaymentDto,
+} from "../../../shared/types/payment";
 import {
-  billingCreateForReservationSchema,
-  type BillingCreateSchema,
-} from "../../../shared/schemas/billing";
+  paymentCreateForReservationSchema,
+  type PaymentCreateSchema,
+} from "../../../shared/schemas/payment";
 import { formatIsoDateTo } from "../../../shared/utils/dateFormat";
 import { formatMoney } from "../../../shared/utils/moneyFormat";
 
@@ -19,8 +19,8 @@ type Props = {
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  billingsUpdated: [];
-  billingsPendingChange: [pending: boolean];
+  paymentsUpdated: [];
+  paymentsPendingChange: [pending: boolean];
 }>();
 
 const toast = useToast();
@@ -28,7 +28,7 @@ const toast = useToast();
 const reservationIdRef = computed(() => props.reservationId);
 
 const {
-  billings,
+  payments,
   pending,
   status,
   error,
@@ -37,54 +37,54 @@ const {
   deleting,
   create,
   remove,
-} = useReservationBillings(reservationIdRef);
+} = useReservationPayments(reservationIdRef);
 
 watch(
   pending,
   (value) => {
-    emit("billingsPendingChange", value);
+    emit("paymentsPendingChange", value);
   },
-  { immediate: true }
+  { immediate: true },
 );
 
-type BillingFormSchema = Omit<BillingCreateSchema, "id_reservation">;
+type PaymentFormSchema = Omit<PaymentCreateSchema, "id_reservation">;
 
-const billingState = reactive<Partial<BillingFormSchema>>({
+const paymentState = reactive<Partial<PaymentFormSchema>>({
   date: undefined,
   amount: undefined,
   observations: undefined,
 });
 
 const deleteModalOpen = ref(false);
-const billingToDelete = ref<BillingDto | null>(null);
+const paymentToDelete = ref<PaymentDto | null>(null);
 
 const deleteDescription = computed(() => {
-  if (!billingToDelete.value) {
+  if (!paymentToDelete.value) {
     return undefined;
   }
-  return "¿Eliminar el cobro? Esta acción no se puede deshacer.";
+  return "¿Eliminar el pago? Esta acción no se puede deshacer.";
 });
 
-function requestDelete(item: BillingDto) {
-  billingToDelete.value = item;
+function requestDelete(item: PaymentDto) {
+  paymentToDelete.value = item;
   deleteModalOpen.value = true;
 }
 
 async function confirmDelete() {
-  if (!billingToDelete.value) {
+  if (!paymentToDelete.value) {
     deleteModalOpen.value = false;
     return;
   }
 
   try {
-    await remove(billingToDelete.value.id);
-    emit("billingsUpdated");
+    await remove(paymentToDelete.value.id);
+    emit("paymentsUpdated");
     toast.add({
-      title: "Cobro eliminado",
+      title: "Pago eliminado",
       description: "Se eliminó correctamente.",
       color: "success",
     });
-    billingToDelete.value = null;
+    paymentToDelete.value = null;
     deleteModalOpen.value = false;
   } catch (err: any) {
     toast.add({
@@ -95,25 +95,25 @@ async function confirmDelete() {
   }
 }
 
-async function onCreate(event: FormSubmitEvent<BillingFormSchema>) {
+async function onCreate(event: FormSubmitEvent<PaymentFormSchema>) {
   try {
-    const input: BillingCreateForReservationInput = {
+    const input: PaymentCreateForReservationInput = {
       date: event.data.date,
       amount: event.data.amount,
       observations: event.data.observations,
     };
 
     await create(input);
-    emit("billingsUpdated");
+    emit("paymentsUpdated");
     toast.add({
-      title: "Cobro agregado",
+      title: "Pago agregado",
       description: "Se agregó correctamente.",
       color: "success",
     });
 
-    billingState.date = undefined;
-    billingState.amount = undefined;
-    billingState.observations = undefined;
+    paymentState.date = undefined;
+    paymentState.amount = undefined;
+    paymentState.observations = undefined;
   } catch (err: any) {
     toast.add({
       title: "Error",
@@ -125,11 +125,11 @@ async function onCreate(event: FormSubmitEvent<BillingFormSchema>) {
 
 const UButton = resolveComponent("UButton");
 
-const columns: TableColumn<BillingDto>[] = [
+const columns: TableColumn<PaymentDto>[] = [
   {
     accessorKey: "date",
     header: "Fecha",
-    cell: ({ row }: { row: { original: BillingDto } }) =>
+    cell: ({ row }: { row: { original: PaymentDto } }) =>
       formatIsoDateTo(row.original.date),
   },
   {
@@ -141,13 +141,13 @@ const columns: TableColumn<BillingDto>[] = [
         td: "text-right font-medium",
       },
     },
-    cell: ({ row }: { row: { original: BillingDto } }) =>
+    cell: ({ row }: { row: { original: PaymentDto } }) =>
       formatMoney(row.original.amount),
   },
   {
     accessorKey: "observations",
     header: "Observaciones",
-    cell: ({ row }: { row: { original: BillingDto } }) =>
+    cell: ({ row }: { row: { original: PaymentDto } }) =>
       row.original.observations ?? "-",
   },
   {
@@ -160,7 +160,7 @@ const columns: TableColumn<BillingDto>[] = [
         td: "text-right",
       },
     },
-    cell: ({ row }: { row: { original: BillingDto } }) =>
+    cell: ({ row }: { row: { original: PaymentDto } }) =>
       h(
         UButton as any,
         {
@@ -170,7 +170,7 @@ const columns: TableColumn<BillingDto>[] = [
           disabled: deleting.value,
           onClick: () => requestDelete(row.original),
         },
-        () => "Eliminar"
+        () => "Eliminar",
       ),
   },
 ];
@@ -179,22 +179,22 @@ const columns: TableColumn<BillingDto>[] = [
 <template>
   <div class="space-y-6">
     <UForm
-      :schema="billingCreateForReservationSchema"
-      :state="billingState"
+      :schema="paymentCreateForReservationSchema"
+      :state="paymentState"
       class="space-y-4"
       @submit="onCreate"
     >
       <div class="grid gap-4 sm:grid-cols-3">
         <div>
           <UFormField label="Fecha" name="date" required>
-            <AppDatePicker v-model="billingState.date" />
+            <AppDatePicker v-model="paymentState.date" />
           </UFormField>
         </div>
 
         <div>
           <UFormField label="Monto" name="amount" required>
             <UInput
-              v-model="billingState.amount"
+              v-model="paymentState.amount"
               class="w-full"
               placeholder="0"
             />
@@ -204,7 +204,7 @@ const columns: TableColumn<BillingDto>[] = [
         <div class="sm:col-span-3">
           <UFormField label="Observaciones" name="observations">
             <UTextarea
-              v-model="billingState.observations"
+              v-model="paymentState.observations"
               class="w-full"
               placeholder="Observaciones"
             />
@@ -214,7 +214,7 @@ const columns: TableColumn<BillingDto>[] = [
 
       <div class="flex items-center justify-end">
         <UButton type="submit" :loading="creating" :disabled="creating">
-          Agregar cobro
+          Agregar pago
         </UButton>
       </div>
     </UForm>
@@ -233,19 +233,19 @@ const columns: TableColumn<BillingDto>[] = [
       class="overflow-auto rounded-lg border border-default"
     >
       <UTable
-        :data="billings"
+        :data="payments"
         :columns="columns"
         :ui="{ tbody: '[&>tr:nth-child(odd)]:bg-elevated' }"
       >
         <template #empty>
-          <div class="py-6 text-center text-sm text-muted">No hay cobros.</div>
+          <div class="py-6 text-center text-sm text-muted">No hay pagos.</div>
         </template>
       </UTable>
     </div>
 
     <AppConfirmModal
       v-model="deleteModalOpen"
-      title="Eliminar cobro"
+      title="Eliminar pago"
       :description="deleteDescription"
       confirm-label="Eliminar"
       confirm-color="error"

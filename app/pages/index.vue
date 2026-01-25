@@ -35,21 +35,21 @@ const {
   editingReservationId,
   reservationInitialValues,
   reservationLoading,
-  billingsDrawerOpen,
-  billingsReservationId,
-  billingsReservation,
+  paymentsDrawerOpen,
+  paymentsReservationId,
+  paymentsReservation,
   deleteModalOpen,
   deleting,
   reservationDateLabel,
   drawerTitle,
-  billingsDrawerTitle,
+  paymentsDrawerTitle,
   onAvailableDayClick,
   onReservationEdit,
-  onReservationBillings,
+  onReservationPayments,
   onReservationSubmit,
   onReservationCancel,
-  onBillingsDrawerClose,
-  openBillingsById,
+  onPaymentsDrawerClose,
+  openPaymentsById,
   syncEditingReservationSaldoFromCalendar,
   confirmDeleteReservation,
 } = useCalendarReservationDrawer({
@@ -80,7 +80,7 @@ async function onMonthChange() {
   }
 }
 
-async function onBillingsUpdated() {
+async function onPaymentsUpdated() {
   await refreshResources();
   syncEditingReservationSaldoFromCalendar(resources.value);
 }
@@ -96,7 +96,7 @@ async function onBillingsUpdated() {
       @month-change="onMonthChange"
       @available-day-click="onAvailableDayClick"
       @reservation-edit="onReservationEdit"
-      @reservation-billings="onReservationBillings"
+      @reservation-payments="onReservationPayments"
     />
 
     <AppErrorMessage
@@ -143,13 +143,13 @@ async function onBillingsUpdated() {
               color="neutral"
               variant="outline"
               @click="
-                openBillingsById(
+                openPaymentsById(
                   editingReservationId,
                   mapReservationToCalendarDto(reservationInitialValues),
                 )
               "
             >
-              Ver cobros
+              Ver pagos
             </UButton>
           </div>
         </div>
@@ -190,18 +190,18 @@ async function onBillingsUpdated() {
     </UDrawer>
 
     <UDrawer
-      v-model:open="billingsDrawerOpen"
-      :title="billingsDrawerTitle"
-      description="Listado y formulario de cobros de la reserva."
+      v-model:open="paymentsDrawerOpen"
+      :title="paymentsDrawerTitle"
+      description="Listado y formulario de pagos de la reserva."
       direction="right"
       :dismissible="true"
       :ui="{ content: 'w-[520px] sm:w-[680px] max-w-[90vw]' }"
-      @close="onBillingsDrawerClose"
+      @close="onPaymentsDrawerClose"
     >
       <template #body>
-        <div v-if="billingsReservationId" class="space-y-4">
+        <div v-if="paymentsReservationId" class="space-y-4">
           <div
-            v-if="billingsReservation"
+            v-if="paymentsReservation"
             class="rounded-lg border border-default bg-elevated/40 p-4"
           >
             <div class="flex flex-wrap items-center justify-between gap-4">
@@ -212,8 +212,8 @@ async function onBillingsUpdated() {
                 <div class="text-lg font-semibold text-highlighted">
                   {{
                     formatMoney(
-                      billingsReservation.saldo ??
-                        billingsReservation.price ??
+                      paymentsReservation.saldo ??
+                        paymentsReservation.price ??
                         0,
                     )
                   }}
@@ -224,11 +224,11 @@ async function onBillingsUpdated() {
                   size="sm"
                   variant="subtle"
                   :color="
-                    billingsReservation.confirmed === 0 ? 'warning' : 'success'
+                    paymentsReservation.confirmed === 0 ? 'warning' : 'success'
                   "
                 >
                   {{
-                    billingsReservation.confirmed === 0
+                    paymentsReservation.confirmed === 0
                       ? "No confirmado"
                       : "Confirmado"
                   }}
@@ -237,10 +237,10 @@ async function onBillingsUpdated() {
                   size="sm"
                   variant="subtle"
                   :color="
-                    billingsReservation.active === 0 ? 'neutral' : 'success'
+                    paymentsReservation.active === 0 ? 'neutral' : 'success'
                   "
                 >
-                  {{ billingsReservation.active === 0 ? "Inactivo" : "Activo" }}
+                  {{ paymentsReservation.active === 0 ? "Inactivo" : "Activo" }}
                 </UBadge>
               </div>
             </div>
@@ -249,8 +249,8 @@ async function onBillingsUpdated() {
                 <span class="text-muted">Inicio</span>
                 <span class="font-medium">
                   {{
-                    billingsReservation.startDate
-                      ? formatIsoDateTo(billingsReservation.startDate)
+                    paymentsReservation.startDate
+                      ? formatIsoDateTo(paymentsReservation.startDate)
                       : "-"
                   }}
                 </span>
@@ -259,17 +259,17 @@ async function onBillingsUpdated() {
                 <span class="text-muted">Fin</span>
                 <span class="font-medium">
                   {{
-                    billingsReservation.endDate
-                      ? formatIsoDateTo(billingsReservation.endDate)
+                    paymentsReservation.endDate
+                      ? formatIsoDateTo(paymentsReservation.endDate)
                       : "-"
                   }}
                 </span>
               </div>
             </div>
           </div>
-          <ReservationDetailBillingsTab
-            :reservation-id="billingsReservationId"
-            @billings-updated="onBillingsUpdated"
+          <ReservationDetailPaymentsTab
+            :reservation-id="paymentsReservationId"
+            @payments-updated="onPaymentsUpdated"
           />
         </div>
         <div v-else class="text-sm text-muted">No hay reserva.</div>
@@ -280,7 +280,7 @@ async function onBillingsUpdated() {
           <UButton
             color="neutral"
             variant="outline"
-            @click="onBillingsDrawerClose"
+            @click="onPaymentsDrawerClose"
           >
             Cerrar
           </UButton>

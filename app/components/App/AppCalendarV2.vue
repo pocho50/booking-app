@@ -40,7 +40,7 @@ type CalendarI18n = {
     saldo: string;
     confirmed: string;
     active: string;
-    billings: string;
+    payments: string;
     yes: string;
     no: string;
   };
@@ -56,7 +56,7 @@ type ReservationClickPayload = {
 
 type ReservationEditPayload = ReservationClickPayload;
 
-type ReservationBillingsPayload = {
+type ReservationPaymentsPayload = {
   reservationId: string | null;
   reservation: CalendarReservationDto;
 };
@@ -104,7 +104,7 @@ const defaultI18n: CalendarI18n = {
     saldo: "Saldo",
     confirmed: "Confirmado",
     active: "Activo",
-    billings: "Ver cobros",
+    payments: "Ver pagos",
     yes: "Sí",
     no: "No",
   },
@@ -136,7 +136,7 @@ const emit = defineEmits<{
   "month-change": [payload: MonthChangePayload];
   "reservation-click": [payload: ReservationClickPayload];
   "reservation-edit": [payload: ReservationEditPayload];
-  "reservation-billings": [payload: ReservationBillingsPayload];
+  "reservation-payments": [payload: ReservationPaymentsPayload];
   "available-day-click": [payload: AvailableDayClickPayload];
 }>();
 
@@ -344,8 +344,8 @@ function onAvailableCellClick(resourceId: string, day: number) {
   });
 }
 
-function onReservationBillings(reservation: CalendarReservation) {
-  emit("reservation-billings", {
+function onReservationPayments(reservation: CalendarReservation) {
+  emit("reservation-payments", {
     reservationId: reservation.id ?? null,
     reservation,
   });
@@ -643,9 +643,9 @@ function getReservationButtonUi(reservation: CalendarReservation) {
                           size="xs"
                           color="neutral"
                           variant="outline"
-                          @click.stop="onReservationBillings(r)"
+                          @click.stop="onReservationPayments(r)"
                         >
-                          {{ i18n.popover.billings }}
+                          {{ i18n.popover.payments }}
                         </UButton>
                       </div>
                     </div>
