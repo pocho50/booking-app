@@ -24,7 +24,7 @@ export default defineLazyEventHandler(async () => {
   const schema = readFileSync("prisma/schema.prisma", "utf8");
 
   const model = wrapLanguageModel({
-    model: gateway("deepseek/deepseek-v3.2"),
+    model: gateway("anthropic/claude-sonnet-4.5"),
     middleware: devToolsMiddleware(),
   });
 
@@ -53,7 +53,7 @@ Puedes devolver la información de la manera que consideres más clara:
 
 ⚠️ Solo asegúrate de que los datos sean correctos y que si generas HTML sea seguro`,
       messages: await convertToModelMessages(messages),
-      stopWhen: stepCountIs(5),
+      stopWhen: stepCountIs(8),
       onStepFinish: (step) => {
         console.log("[chat] step", {
           toolCalls: step.toolCalls.length,

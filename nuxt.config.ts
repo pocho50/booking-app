@@ -7,6 +7,12 @@ export default defineNuxtConfig({
       .pathname,
   },
 
+  app: {
+    head: {
+      link: [{ rel: "manifest", href: "/site.webmanifest" }],
+    },
+  },
+
   vite: {
     optimizeDeps: {
       include: ["zod"],
