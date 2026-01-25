@@ -44,6 +44,11 @@ const items = ref([
     icon: "i-lucide-calendar-days",
     to: "/reservas",
   },
+  {
+    label: "IA",
+    icon: "i-lucide-sparkles",
+    to: "/ia",
+  },
 ]);
 </script>
 
