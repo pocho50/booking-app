@@ -51,7 +51,7 @@ model Resource {
   @@map("resources")
 }
 
-// Bookings that link clients to resources over a time range.
+// Reservation data with price and status tracking.
 model Reservation {
   id           String   @id @default(uuid())
   start_date   DateTime
