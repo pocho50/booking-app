@@ -1,6 +1,12 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ["@nuxt/eslint", "@nuxt/ui", "nuxt-auth-utils", "@nuxtjs/mdc"],
+  modules: [
+    "@nuxt/eslint",
+    "@nuxt/ui",
+    "nuxt-auth-utils",
+    "@nuxtjs/mdc",
+    "nuxt-charts",
+  ],
 
   alias: {
     "#prisma-client": new URL("./prisma/generated/client.js", import.meta.url)

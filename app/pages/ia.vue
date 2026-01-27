@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Chat } from "@ai-sdk/vue";
 import type { UIMessage } from "ai";
+import type { ChartUIToolInvocation } from "~~/shared/utils/tools/chartLineTool";
 
 const messages: UIMessage[] = [];
 const input = ref("");
@@ -31,7 +32,7 @@ const onSubmit = (e: Event) => {
       <template #content="{ message }">
         <template
           v-for="(part, index) in message.parts"
-          :key="`${message.id}-${part.type}-${index}`"
+          :key="`${message.id}-${part.type}-${index}${'state' in part ? `-${part.state}` : ''}`"
         >
           <MDC
             v-if="part.type === 'text' && message.role === 'assistant'"
@@ -45,6 +46,11 @@ const onSubmit = (e: Event) => {
           >
             {{ part.text }}
           </p>
+
+          <ToolsChartLine
+            v-else-if="part.type === 'tool-chartLineTool'"
+            :invocation="part as ChartUIToolInvocation"
+          />
         </template>
       </template>
     </UChatMessages>

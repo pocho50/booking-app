@@ -15,6 +15,7 @@ import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { z } from "zod";
 import { prisma } from "../utils/db";
 import { toJsonSafe, validateSql } from "../utils/sql";
+import { chartLineTool } from "../../shared/utils/tools/chartLineTool";
 
 export default defineLazyEventHandler(async () => {
   const apiKey = useRuntimeConfig().aiGatewayApiKey;
@@ -69,6 +70,7 @@ You can return the information in whatever way you consider clearest:
           toolCalls: step.toolCalls.length,
           toolResults: step.toolResults.length,
           finishReason: step.finishReason,
+          toolCall: step.toolCalls.map((tool) => tool.type).join("--"),
         });
       },
       onError: (error) => {
@@ -100,6 +102,7 @@ You can return the information in whatever way you consider clearest:
             return toJsonSafe(rows);
           },
         }),
+        chartLineTool,
       },
     });
 
