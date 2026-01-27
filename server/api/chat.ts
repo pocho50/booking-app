@@ -9,6 +9,8 @@ import {
   wrapLanguageModel,
 } from "ai";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { z } from "zod";
 import { prisma } from "../utils/db";
@@ -21,7 +23,11 @@ export default defineLazyEventHandler(async () => {
     apiKey: apiKey,
   });
 
-  const schema = readFileSync("prisma/schema.prisma", "utf8");
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const schema = readFileSync(
+    resolve(__dirname, "../../prisma/schema.prisma"),
+    "utf8",
+  );
 
   const model = wrapLanguageModel({
     model: gateway("anthropic/claude-sonnet-4.5"),
@@ -33,25 +39,29 @@ export default defineLazyEventHandler(async () => {
 
     const result = streamText({
       model,
-      system: `Tienes los siguientes datos en la base de datos (o esquema Prisma) ${schema}
+      system: `You have the following data in the database (or Prisma schema) ${schema}
 
-Genera un SQL SELECT seguro que responda a la pregunta del usuario.
-Antes de ejecutar, revisa el SQL como si fueras un revisor senior:
-- ¿Responde realmente la pregunta?
-- ¿Hay errores logicos o duplicaciones?
-- ¿Podria devolver datos incorrectos?
-Si detectas problemas, corrige el SQL antes de ejecutarlo.
-Puedes hacer mas de una consulta SQL si hace falta validar o corregir el resultado.
-Si el tool devuelve un error, corrige el SQL y reintenta (maximo 2 reintentos).
-Usa la herramienta executeSql para ejecutar la consulta y luego responde usando el resultado.
+Generate a safe SQL SELECT query that answers the user's question.
+You can only run SELECT queries; you cannot run INSERT, UPDATE, DELETE, DROP, ALTER, TRUNCATE, CREATE.
+You cannot query the users table.
+Keep in mind that inactive reservations (active = false) are not reservations, but disabled days for making reservations.
+The total number of days in a reservation includes both the start day and the end day.
+Before executing, review the SQL as if you were a senior reviewer:
+- Does it really answer the question?
+- Are there logical errors or duplications?
+- Could it return incorrect data?
+If you detect issues, fix the SQL before executing it.
+You can run more than one SQL query if you need to validate or correct the result.
+If the tool returns an error, fix the SQL and retry (maximum 2 retries).
+Use the executeSql tool to run the query and then respond using the result.
 
-Puedes devolver la información de la manera que consideres más clara:
-- Una tabla HTML
-- Una lista
-- Texto resumido
-- Cualquier combinación que facilite la lectura del reporte
+You can return the information in whatever way you consider clearest:
+- An HTML table
+- A list
+- A short summary
+- Any combination that makes the report easier to read
 
-⚠️ Solo asegúrate de que los datos sean correctos y que si generas HTML sea seguro`,
+⚠️ Just make sure the data is correct, and if you generate HTML, it must be safe`,
       messages: await convertToModelMessages(messages),
       stopWhen: stepCountIs(8),
       onStepFinish: (step) => {
@@ -66,7 +76,7 @@ Puedes devolver la información de la manera que consideres más clara:
       },
       tools: {
         executeSql: tool({
-          description: "Ejecuta una consulta SELECT en la base de datos",
+          description: "Executes a SELECT query in the database",
           inputSchema: zodSchema(
             z.object({
               sql: z.string().min(1),

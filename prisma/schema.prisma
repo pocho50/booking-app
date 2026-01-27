@@ -51,7 +51,12 @@ model Resource {
   @@map("resources")
 }
 
-// Reservation data with price and status tracking.
+/**
+ * Reservation data with price and status tracking.
+ * - `confirmed`: Whether the reservation has been confirmed.
+ * - `active`: Whether these dates are available for reservation.
+ * - The reservation total days includes both the start date and end date.
+*/
 model Reservation {
   id           String   @id @default(uuid())
   start_date   DateTime

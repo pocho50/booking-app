@@ -36,7 +36,15 @@ export const validateSql = (sql: string): void => {
     throw new Error("System schemas are not allowed");
   }
 
+  if (lower.includes("sqlite_master") || lower.includes("sqlite_schema")) {
+    throw new Error("System tables are not allowed");
+  }
+
   if (/\b(insert|update|delete|drop|alter|truncate|create)\b/i.test(lower)) {
     throw new Error("Mutating queries are not allowed");
+  }
+
+  if (lower.includes("users")) {
+    throw new Error("Users table is not allowed");
   }
 };
