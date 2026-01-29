@@ -111,10 +111,12 @@ const formatValue = (value: string | number | undefined): string => {
       >
         <template #tooltip="{ values }">
           <div
-            class="bg-muted/50 rounded-sm px-2 py-1 shadow-lg backdrop-blur-sm max-w-xs ring ring-offset-2 ring-offset-(--ui-bg) ring-default border border-default"
+            class="bg-muted/50 rounded-sm px-2 py-1 shadow-lg backdrop-blur-sm max-w-xs ring ring-offset-2 ring-offset-bg ring-default border border-default"
           >
             <div
-              v-if="values && invocation.output && values[invocation.output.xKey]"
+              v-if="
+                values && invocation.output && values[invocation.output.xKey]
+              "
               class="text-sm font-semibold text-highlighted mb-2"
             >
               {{ values[invocation.output.xKey] }}
@@ -130,7 +132,9 @@ const formatValue = (value: string | number | undefined): string => {
                     class="size-2.5 rounded-full shrink-0"
                     :style="{ backgroundColor: serie.color }"
                   />
-                  <span class="text-sm text-muted truncate">{{ serie.name }}</span>
+                  <span class="text-sm text-muted truncate">{{
+                    serie.name
+                  }}</span>
                 </div>
                 <span class="text-sm font-semibold text-highlighted shrink-0">
                   {{ formatValue(values?.[serie.key]) }}

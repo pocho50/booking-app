@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { listCalendarResources } from "../services/calendarService";
-import type {
-  CalendarReservationDto,
-  CalendarResourceDto,
-} from "../../shared/types/calendar";
-import type { ReservationDto } from "../../shared/types/reservation";
-import { formatIsoDateTo } from "../../shared/utils/dateFormat";
-import { formatMoney } from "../../shared/utils/moneyFormat";
+import type { CalendarResourceDto } from "../../shared/types/calendar";
 
 const today = new Date();
 const month = ref(today.getMonth() + 1);
@@ -57,20 +51,6 @@ const {
   refreshResources,
 });
 
-function mapReservationToCalendarDto(
-  reservation: ReservationDto,
-): CalendarReservationDto {
-  return {
-    id: reservation.id,
-    startDate: reservation.start_date,
-    endDate: reservation.end_date,
-    confirmed: reservation.confirmed ? 1 : 0,
-    active: reservation.active ? 1 : 0,
-    price: reservation.price,
-    saldo: reservation.saldo,
-  };
-}
-
 async function onMonthChange() {
   loading.value = true;
   try {
@@ -106,187 +86,29 @@ async function onPaymentsUpdated() {
       @retry="refreshResources()"
     />
 
-    <UDrawer
+    <CalendarReservationDrawer
       v-model:open="reservationDrawerOpen"
       :title="drawerTitle"
-      description="Formulario para crear o editar la reserva seleccionada."
-      direction="right"
-      :dismissible="true"
-      :ui="{ content: 'w-[420px] sm:w-[520px] max-w-[90vw]' }"
-    >
-      <template #body>
-        <div
-          v-if="
-            reservationInitialValues &&
-            editingReservationId &&
-            reservationInitialValues.active
-          "
-          class="mb-4 rounded-lg border border-default bg-elevated/40 p-3"
-        >
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <div class="text-xs uppercase tracking-wide text-muted">
-                Saldo
-              </div>
-              <div class="text-base font-semibold text-highlighted">
-                {{
-                  formatMoney(
-                    reservationInitialValues.saldo ??
-                      reservationInitialValues.price ??
-                      0,
-                  )
-                }}
-              </div>
-            </div>
-            <UButton
-              size="xs"
-              color="neutral"
-              variant="outline"
-              @click="
-                openPaymentsById(
-                  editingReservationId,
-                  mapReservationToCalendarDto(reservationInitialValues),
-                )
-              "
-            >
-              Ver pagos
-            </UButton>
-          </div>
-        </div>
-        <ReservationForm
-          v-if="selectedReservationResource"
-          :resource="selectedReservationResource"
-          :date-label="reservationDateLabel"
-          :initial-start-date="selectedReservationIsoDate ?? undefined"
-          :initial-values="reservationInitialValues ?? undefined"
-          :loading="reservationLoading"
-          form-id="reservation-form"
-          @submit="onReservationSubmit"
-          @cancel="onReservationCancel"
-        />
-      </template>
+      :selected-reservation-resource="selectedReservationResource"
+      :selected-reservation-iso-date="selectedReservationIsoDate"
+      :reservation-date-label="reservationDateLabel"
+      :reservation-initial-values="reservationInitialValues"
+      :reservation-loading="reservationLoading"
+      :editing-reservation-id="editingReservationId"
+      @submit="onReservationSubmit"
+      @cancel="onReservationCancel"
+      @request-delete="deleteModalOpen = true"
+      @open-payments="openPaymentsById"
+    />
 
-      <template #footer>
-        <div class="flex items-center justify-end gap-2">
-          <UButton
-            v-if="editingReservationId"
-            color="error"
-            variant="outline"
-            :disabled="reservationLoading"
-            @click="deleteModalOpen = true"
-          >
-            Eliminar
-          </UButton>
-          <UButton
-            color="neutral"
-            variant="outline"
-            @click="onReservationCancel"
-          >
-            Cancelar
-          </UButton>
-          <UButton type="submit" form="reservation-form"> Guardar </UButton>
-        </div>
-      </template>
-    </UDrawer>
-
-    <UDrawer
+    <CalendarPaymentsDrawer
       v-model:open="paymentsDrawerOpen"
       :title="paymentsDrawerTitle"
-      description="Listado y formulario de pagos de la reserva."
-      direction="right"
-      :dismissible="true"
-      :ui="{ content: 'w-[520px] sm:w-[680px] max-w-[90vw]' }"
+      :reservation-id="paymentsReservationId"
+      :reservation="paymentsReservation"
       @close="onPaymentsDrawerClose"
-    >
-      <template #body>
-        <div v-if="paymentsReservationId" class="space-y-4">
-          <div
-            v-if="paymentsReservation"
-            class="rounded-lg border border-default bg-elevated/40 p-4"
-          >
-            <div class="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <div class="text-xs uppercase tracking-wide text-muted">
-                  Saldo
-                </div>
-                <div class="text-lg font-semibold text-highlighted">
-                  {{
-                    formatMoney(
-                      paymentsReservation.saldo ??
-                        paymentsReservation.price ??
-                        0,
-                    )
-                  }}
-                </div>
-              </div>
-              <div class="flex flex-wrap items-center gap-2">
-                <UBadge
-                  size="sm"
-                  variant="subtle"
-                  :color="
-                    paymentsReservation.confirmed === 0 ? 'warning' : 'success'
-                  "
-                >
-                  {{
-                    paymentsReservation.confirmed === 0
-                      ? "No confirmado"
-                      : "Confirmado"
-                  }}
-                </UBadge>
-                <UBadge
-                  size="sm"
-                  variant="subtle"
-                  :color="
-                    paymentsReservation.active === 0 ? 'neutral' : 'success'
-                  "
-                >
-                  {{ paymentsReservation.active === 0 ? "Inactivo" : "Activo" }}
-                </UBadge>
-              </div>
-            </div>
-            <div class="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-              <div class="flex items-center gap-3">
-                <span class="text-muted">Inicio</span>
-                <span class="font-medium">
-                  {{
-                    paymentsReservation.startDate
-                      ? formatIsoDateTo(paymentsReservation.startDate)
-                      : "-"
-                  }}
-                </span>
-              </div>
-              <div class="flex items-center gap-3">
-                <span class="text-muted">Fin</span>
-                <span class="font-medium">
-                  {{
-                    paymentsReservation.endDate
-                      ? formatIsoDateTo(paymentsReservation.endDate)
-                      : "-"
-                  }}
-                </span>
-              </div>
-            </div>
-          </div>
-          <ReservationDetailPaymentsTab
-            :reservation-id="paymentsReservationId"
-            @payments-updated="onPaymentsUpdated"
-          />
-        </div>
-        <div v-else class="text-sm text-muted">No hay reserva.</div>
-      </template>
-
-      <template #footer>
-        <div class="flex items-center justify-end">
-          <UButton
-            color="neutral"
-            variant="outline"
-            @click="onPaymentsDrawerClose"
-          >
-            Cerrar
-          </UButton>
-        </div>
-      </template>
-    </UDrawer>
+      @payments-updated="onPaymentsUpdated"
+    />
 
     <AppConfirmModal
       v-model="deleteModalOpen"
