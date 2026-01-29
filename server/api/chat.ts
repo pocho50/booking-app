@@ -16,6 +16,7 @@ import { z } from "zod";
 import { prisma } from "../utils/db";
 import { toJsonSafe, validateSql } from "../utils/sql";
 import { chartLineTool } from "../../shared/utils/tools/chartLineTool";
+import { chartBarTool } from "../../shared/utils/tools/chartBarTool";
 
 export default defineLazyEventHandler(async () => {
   const apiKey = useRuntimeConfig().aiGatewayApiKey;
@@ -31,7 +32,7 @@ export default defineLazyEventHandler(async () => {
   );
 
   const model = wrapLanguageModel({
-    model: gateway("anthropic/claude-sonnet-4.5"),
+    model: gateway("anthropic/claude-opus-4.5"),
     middleware: devToolsMiddleware(),
   });
 
@@ -103,6 +104,7 @@ You can return the information in whatever way you consider clearest:
           },
         }),
         chartLineTool,
+        chartBarTool,
       },
     });
 
