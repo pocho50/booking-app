@@ -3,6 +3,7 @@ import { Chat } from "@ai-sdk/vue";
 import type { UIMessage } from "ai";
 import type { ChartUIToolInvocation } from "~~/shared/utils/tools/chartLineTool";
 import type { BarChartUIToolInvocation } from "~~/shared/utils/tools/chartBarTool";
+import type { DonutChartUIToolInvocation } from "~~/shared/utils/tools/chartDonutTool";
 
 const messages: UIMessage[] = [];
 const input = ref("");
@@ -56,6 +57,11 @@ const onSubmit = (e: Event) => {
           <ToolsChartBar
             v-else-if="part.type === 'tool-chartBarTool'"
             :invocation="part as BarChartUIToolInvocation"
+          />
+
+          <ToolsChartDonut
+            v-else-if="part.type === 'tool-chartDonutTool'"
+            :invocation="part as DonutChartUIToolInvocation"
           />
         </template>
       </template>
