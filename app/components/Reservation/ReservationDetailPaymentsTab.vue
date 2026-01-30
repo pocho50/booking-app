@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FormSubmitEvent, TableColumn } from "@nuxt/ui";
+import type { DropdownMenuItem, FormSubmitEvent, TableColumn } from "@nuxt/ui";
 import { h, resolveComponent } from "vue";
 import type {
   PaymentCreateForReservationInput,
@@ -123,8 +123,6 @@ async function onCreate(event: FormSubmitEvent<PaymentFormSchema>) {
   }
 }
 
-const UButton = resolveComponent("UButton");
-
 const columns: TableColumn<PaymentDto>[] = [
   {
     accessorKey: "date",
@@ -160,18 +158,22 @@ const columns: TableColumn<PaymentDto>[] = [
         td: "text-right",
       },
     },
-    cell: ({ row }: { row: { original: PaymentDto } }) =>
-      h(
-        UButton as any,
+    cell: ({ row }: { row: { original: PaymentDto } }) => {
+      const items: DropdownMenuItem[] = [
         {
-          size: "xs",
+          label: "Eliminar",
+          icon: "i-lucide-trash",
           color: "error",
-          variant: "ghost",
           disabled: deleting.value,
-          onClick: () => requestDelete(row.original),
+          onSelect: () => requestDelete(row.original),
         },
-        () => "Eliminar",
-      ),
+      ];
+
+      return h(resolveComponent("AppTableActions") as any, {
+        items,
+        disabled: deleting.value,
+      });
+    },
   },
 ];
 </script>

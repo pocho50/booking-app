@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { h, resolveComponent } from "vue";
-import type { TableColumn } from "@nuxt/ui";
+import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
 import {
   listClients,
   type ClientListItemDto,
@@ -8,7 +8,6 @@ import {
 import { formatMoney } from "../../../shared/utils/moneyFormat";
 import { useTableSearchPagination } from "../../composables/useTableSearchPagination";
 
-const UButton = resolveComponent("UButton");
 const UBadge = resolveComponent("UBadge");
 
 const {
@@ -69,17 +68,17 @@ const columns: TableColumn<ClientListItemDto>[] = [
         td: "text-right",
       },
     },
-    cell: ({ row }) =>
-      h(
-        UButton as any,
+    cell: ({ row }) => {
+      const items: DropdownMenuItem[] = [
         {
-          size: "sm",
-          color: "neutral",
-          variant: "outline",
+          label: "Editar",
+          icon: "i-lucide-pencil",
           to: `/clientes/${row.original.id}`,
         },
-        () => "Editar",
-      ),
+      ];
+
+      return h(resolveComponent("AppTableActions") as any, { items });
+    },
   },
 ];
 </script>

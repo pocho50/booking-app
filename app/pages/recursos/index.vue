@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { h, resolveComponent } from "vue";
-import type { TableColumn } from "@nuxt/ui";
+import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
 import {
   deleteResource,
   listResources,
   type ResourceDto,
 } from "../../services/resourceService";
 import { useTableSearchPagination } from "../../composables/useTableSearchPagination";
-
-const UButton = resolveComponent("UButton");
 
 const {
   data: resourcesData,
@@ -63,29 +61,23 @@ const columns: TableColumn<ResourceDto>[] = [
         td: "text-right",
       },
     },
-    cell: ({ row }) =>
-      h("div", { class: "flex justify-end gap-2" }, [
-        h(
-          UButton as any,
-          {
-            size: "sm",
-            color: "neutral",
-            variant: "outline",
-            to: `/recursos/${row.original.id}`,
-          },
-          () => "Editar"
-        ),
-        h(
-          UButton as any,
-          {
-            size: "sm",
-            color: "error",
-            variant: "outline",
-            onClick: () => requestDelete(row.original),
-          },
-          () => "Eliminar"
-        ),
-      ]),
+    cell: ({ row }) => {
+      const items: DropdownMenuItem[] = [
+        {
+          label: "Editar",
+          icon: "i-lucide-pencil",
+          to: `/recursos/${row.original.id}`,
+        },
+        {
+          label: "Eliminar",
+          icon: "i-lucide-trash",
+          color: "error",
+          onSelect: () => requestDelete(row.original),
+        },
+      ];
+
+      return h(resolveComponent("AppTableActions") as any, { items });
+    },
   },
 ];
 

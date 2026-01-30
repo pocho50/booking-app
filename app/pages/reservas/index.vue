@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { h, resolveComponent } from "vue";
-import type { TableColumn } from "@nuxt/ui";
+import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
 import { listReservations } from "../../services/reservationService";
 import type { ReservationListItemDto } from "../../../shared/types/reservation";
 import { formatIsoDateTo } from "../../../shared/utils/dateFormat";
 import { formatMoney } from "../../../shared/utils/moneyFormat";
 import { useTableSearchPagination } from "../../composables/useTableSearchPagination";
 
-const UButton = resolveComponent("UButton");
 const UBadge = resolveComponent("UBadge");
 
 const {
@@ -16,13 +15,13 @@ const {
   refresh,
   error,
 } = await useAsyncData<ReservationListItemDto[]>("reservations", () =>
-  listReservations()
+  listReservations(),
 );
 
 const reservations = computed<ReservationListItemDto[]>(() =>
   [...(reservationsData.value ?? [])].sort((a, b) =>
-    b.start_date.localeCompare(a.start_date)
-  )
+    b.start_date.localeCompare(a.start_date),
+  ),
 );
 
 const {
@@ -86,7 +85,7 @@ const columns: TableColumn<ReservationListItemDto>[] = [
           variant: "subtle",
           color: row.original.saldo <= 0 ? "success" : "error",
         },
-        () => formatMoney(row.original.saldo)
+        () => formatMoney(row.original.saldo),
       ),
   },
   {
@@ -107,7 +106,7 @@ const columns: TableColumn<ReservationListItemDto>[] = [
           variant: "subtle",
           color: confirmed ? "success" : "warning",
         },
-        () => (confirmed ? "Sí" : "No")
+        () => (confirmed ? "Sí" : "No"),
       );
     },
   },
@@ -121,17 +120,17 @@ const columns: TableColumn<ReservationListItemDto>[] = [
         td: "text-right",
       },
     },
-    cell: ({ row }) =>
-      h(
-        UButton as any,
+    cell: ({ row }) => {
+      const items: DropdownMenuItem[] = [
         {
-          size: "sm",
-          color: "neutral",
-          variant: "outline",
+          label: "Detalles",
+          icon: "i-lucide-eye",
           to: `/reservas/${row.original.id}`,
         },
-        () => "Detalles"
-      ),
+      ];
+
+      return h(resolveComponent("AppTableActions") as any, { items });
+    },
   },
 ];
 </script>
