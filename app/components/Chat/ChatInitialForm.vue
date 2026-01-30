@@ -9,6 +9,8 @@ const props = withDefaults(defineProps<Props>(), {
   submitText: "Iniciar",
 });
 
+const isEmpty = computed(() => !modelValue.value.trim());
+
 const emit = defineEmits<{
   (e: "submit", event: Event): void;
 }>();
@@ -37,6 +39,7 @@ const modelValue = defineModel<string>({ default: "" });
           size="xl"
           variant="none"
           class="flex-1"
+          required
         />
         <UButton
           type="submit"
@@ -44,6 +47,7 @@ const modelValue = defineModel<string>({ default: "" });
           size="lg"
           icon="i-lucide-arrow-up"
           :aria-label="props.submitText"
+          :disabled="isEmpty"
         />
       </div>
       <p class="text-center text-xs text-muted">

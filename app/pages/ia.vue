@@ -14,8 +14,12 @@ const hasStarted = ref(false);
 
 const onSubmit = (e: Event) => {
   e.preventDefault();
+
+  const text = input.value.trim();
+  if (!text) return;
+
   hasStarted.value = true;
-  chat.sendMessage({ text: input.value });
+  chat.sendMessage({ text });
   input.value = "";
 };
 </script>
@@ -29,6 +33,10 @@ const onSubmit = (e: Event) => {
     <UChatMessages
       :messages="chat.messages"
       :status="chat.status"
+      :ui="{
+        indicator:
+          'h-6 flex items-center gap-1 py-3 *:size-2 *:rounded-full *:bg-gray-400 dark:*:bg-gray-500 [&>*:nth-child(1)]:animate-[bounce_1s_infinite] [&>*:nth-child(2)]:animate-[bounce_1s_0.15s_infinite] [&>*:nth-child(3)]:animate-[bounce_1s_0.3s_infinite]',
+      }"
       class="flex-1 min-h-0 overflow-y-auto pb-6"
       :should-auto-scroll="true"
     >
