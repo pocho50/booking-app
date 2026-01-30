@@ -1,35 +1,24 @@
 <script setup lang="ts">
 import type { ChartUIToolInvocation } from "~~/shared/utils/tools/chartLineTool";
-import type { BulletLegendItemInterface } from "vue-chrts";
 import { CurveType, LegendPosition } from "vue-chrts";
+import {
+  categoriesFromSeries,
+  formatChartValue,
+} from "~~/shared/utils/chartUi";
+
 const props = defineProps<{
   invocation: ChartUIToolInvocation;
 }>();
 
-const color = computed(() => {
-  return (
-    {
-      "output-error": "bg-muted text-error",
-    }[props.invocation.state as string] || "bg-muted text-white"
-  );
-});
-
-const icon = computed(() => {
-  return (
-    {
-      "input-available": "i-lucide-line-chart",
-      "output-error": "i-lucide-triangle-alert",
-    }[props.invocation.state as string] || "i-lucide-loader-circle"
-  );
-});
-
-const message = computed(() => {
-  return (
-    {
-      "input-available": "Generating chart...",
-      "output-error": "Can't generate chart, please try again",
-    }[props.invocation.state as string] || "Loading chart data..."
-  );
+const { color, icon, message, isStreaming } = useToolStatusCard({
+  state: computed(() => props.invocation.state as string),
+  icons: {
+    "input-available": "i-lucide-line-chart",
+  },
+  messages: {
+    "input-available": "Generando gráfico...",
+  },
+  defaultMessage: "Cargando datos del gráfico...",
 });
 
 const xFormatter = (invocation: ChartUIToolInvocation) => {
@@ -37,38 +26,6 @@ const xFormatter = (invocation: ChartUIToolInvocation) => {
     if (!invocation.output?.data[tick]) return "";
     return String(invocation.output.data[tick][invocation.output.xKey] ?? "");
   };
-};
-
-const categories = (
-  invocation: ChartUIToolInvocation,
-): Record<string, BulletLegendItemInterface> => {
-  if (!invocation.output?.series) return {};
-  return invocation.output.series.reduce(
-    (
-      acc: Record<string, BulletLegendItemInterface>,
-      serie: { key: string; name: string; color: string },
-    ) => {
-      acc[serie.key] = {
-        name: serie.name,
-        color: serie.color,
-      };
-      return acc;
-    },
-    {} as Record<string, BulletLegendItemInterface>,
-  );
-};
-
-const formatValue = (value: string | number | undefined): string => {
-  if (value === undefined || value === null) return "N/A";
-  if (typeof value === "string") return value;
-
-  if (Number.isInteger(value)) {
-    return value.toLocaleString();
-  }
-  return value.toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
 };
 </script>
 
@@ -89,7 +46,7 @@ const formatValue = (value: string | number | undefined): string => {
       <LineChart
         :height="300"
         :data="invocation.output.data"
-        :categories="categories(invocation)"
+        :categories="categoriesFromSeries(invocation.output.series)"
         :x-formatter="xFormatter(invocation)"
         :x-label="invocation.output.xLabel"
         :y-label="invocation.output.yLabel"
@@ -127,7 +84,7 @@ const formatValue = (value: string | number | undefined): string => {
                   }}</span>
                 </div>
                 <span class="text-sm font-semibold text-highlighted shrink-0">
-                  {{ formatValue(values?.[serie.key]) }}
+                  {{ formatChartValue(values?.[serie.key]) }}
                 </span>
               </div>
             </div>
@@ -137,53 +94,11 @@ const formatValue = (value: string | number | undefined): string => {
     </div>
   </div>
 
-  <div v-else class="rounded-xl px-5 py-4 my-5" :class="color">
-    <div class="flex items-center justify-center h-44">
-      <div class="text-center">
-        <UIcon
-          :name="icon"
-          class="size-8 mx-auto mb-2"
-          :class="[invocation.state === 'input-streaming' && 'animate-spin']"
-        />
-        <div class="text-sm">
-          {{ message }}
-        </div>
-      </div>
-    </div>
-  </div>
+  <ToolsToolStatusCard
+    v-else
+    :color="color"
+    :icon="icon"
+    :message="message"
+    :is-streaming="isStreaming"
+  />
 </template>
-
-<style>
-:root {
-  --vis-tooltip-padding: 0 !important;
-  --vis-tooltip-background-color: transparent !important;
-  --vis-tooltip-border-color: transparent !important;
-
-  --vis-axis-grid-color: rgba(255, 255, 255, 0) !important;
-  --vis-axis-tick-label-color: var(--ui-text-muted) !important;
-  --vis-axis-label-color: var(--ui-text-toned) !important;
-  --vis-legend-label-color: var(--ui-text-muted) !important;
-
-  --dot-pattern-color: #111827;
-}
-
-.dark {
-  --dot-pattern-color: #9ca3af;
-}
-
-.dot-pattern {
-  position: absolute;
-  background-image: radial-gradient(
-    var(--dot-pattern-color) 1px,
-    transparent 1px
-  );
-  background-size: 7px 7px;
-  background-position: -8.5px -8.5px;
-  opacity: 20%;
-  mask-image: radial-gradient(
-    ellipse at center,
-    rgba(0, 0, 0, 1),
-    transparent 75%
-  );
-}
-</style>

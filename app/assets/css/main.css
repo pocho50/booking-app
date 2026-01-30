@@ -21,4 +21,35 @@
 
 :root {
   --ui-container: var(--container-9xl);
+
+  --vis-tooltip-padding: 0 !important;
+  --vis-tooltip-background-color: transparent !important;
+  --vis-tooltip-border-color: transparent !important;
+
+  --vis-axis-grid-color: rgba(255, 255, 255, 0) !important;
+  --vis-axis-tick-label-color: var(--ui-text-muted) !important;
+  --vis-axis-label-color: var(--ui-text-toned) !important;
+  --vis-legend-label-color: var(--ui-text-muted) !important;
+
+  --dot-pattern-color: #111827;
+}
+
+.dark {
+  --dot-pattern-color: #9ca3af;
+}
+
+.dot-pattern {
+  position: absolute;
+  background-image: radial-gradient(
+    var(--dot-pattern-color) 1px,
+    transparent 1px
+  );
+  background-size: 7px 7px;
+  background-position: -8.5px -8.5px;
+  opacity: 20%;
+  mask-image: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 1),
+    transparent 75%
+  );
 }

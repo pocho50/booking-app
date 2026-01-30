@@ -5,30 +5,15 @@ const props = defineProps<{
   invocation: ExportFileUIToolInvocation;
 }>();
 
-const color = computed(() => {
-  return (
-    {
-      "output-error": "bg-muted text-error",
-    }[props.invocation.state as string] || "bg-muted text-white"
-  );
-});
-
-const icon = computed(() => {
-  return (
-    {
-      "input-available": "i-lucide-file-down",
-      "output-error": "i-lucide-triangle-alert",
-    }[props.invocation.state as string] || "i-lucide-loader-circle"
-  );
-});
-
-const message = computed(() => {
-  return (
-    {
-      "input-available": "Generating export...",
-      "output-error": "Can't generate export, please try again",
-    }[props.invocation.state as string] || "Preparing file..."
-  );
+const { color, icon, message, isStreaming } = useToolStatusCard({
+  state: computed(() => props.invocation.state as string),
+  icons: {
+    "input-available": "i-lucide-file-down",
+  },
+  messages: {
+    "input-available": "Generando archivo...",
+  },
+  defaultMessage: "Preparando archivo...",
 });
 
 const downloadUrl = computed(() => props.invocation.output?.url ?? "");
@@ -40,7 +25,10 @@ const downloadUrl = computed(() => props.invocation.output?.url ?? "");
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
           <div class="flex items-center gap-2">
-            <UIcon name="i-lucide-file-down" class="size-5 text-primary shrink-0" />
+            <UIcon
+              name="i-lucide-file-down"
+              class="size-5 text-primary shrink-0"
+            />
             <div class="min-w-0">
               <h3 class="text-base font-semibold text-highlighted truncate">
                 {{ invocation.output.title ?? invocation.output.filename }}
@@ -65,18 +53,12 @@ const downloadUrl = computed(() => props.invocation.output?.url ?? "");
     </div>
   </div>
 
-  <div v-else class="rounded-xl px-5 py-4 my-5" :class="color">
-    <div class="flex items-center justify-center h-32">
-      <div class="text-center">
-        <UIcon
-          :name="icon"
-          class="size-8 mx-auto mb-2"
-          :class="[invocation.state === 'input-streaming' && 'animate-spin']"
-        />
-        <div class="text-sm">
-          {{ message }}
-        </div>
-      </div>
-    </div>
-  </div>
+  <ToolsToolStatusCard
+    v-else
+    :color="color"
+    :icon="icon"
+    :message="message"
+    :is-streaming="isStreaming"
+    height-class="h-32"
+  />
 </template>
