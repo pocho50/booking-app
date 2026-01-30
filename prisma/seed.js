@@ -14,6 +14,10 @@ function addDays(date, days) {
   return next;
 }
 
+function makeDate(year, month, day) {
+  return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+}
+
 async function findOrCreateUser({ name, email, password, role }) {
   const existing = await prisma.user.findFirst({ where: { email } });
   if (existing) {
@@ -164,6 +168,23 @@ async function main() {
     description: "Loft moderno con terraza",
   });
 
+  const resourcePlaya = await findOrCreateResource({
+    name: "Apartamento Playa",
+    description: "Apartamento a pocos metros del mar",
+  });
+  const resourceMontana = await findOrCreateResource({
+    name: "Cabaña Montaña",
+    description: "Cabaña acogedora en zona de montaña",
+  });
+  const resourceEstudio = await findOrCreateResource({
+    name: "Estudio Jardín",
+    description: "Estudio compacto con patio interior",
+  });
+  const resourceDuplex = await findOrCreateResource({
+    name: "Dúplex Familiar",
+    description: "Dúplex amplio ideal para familias",
+  });
+
   const clientAna = await findOrCreateClient({
     name: "Ana",
     last_name: "García",
@@ -186,60 +207,219 @@ async function main() {
     phone: "+34 600 000 002",
   });
 
-  const today = new Date();
-  const reservationA = await findOrCreateReservation({
-    start_date: addDays(today, 2),
-    end_date: addDays(today, 5),
-    resourceId: resourceCasa.id,
-    clientId: clientAna.id,
-    price: 420,
-    confirmed: true,
-    active: true,
-    observation: "Reserva temprana",
-  });
+  const extraClients = [
+    {
+      name: "María",
+      last_name: "López",
+      doc: "DNI-100001",
+      email: "maria.lopez@mail.com",
+      address: "Calle Mayor 10",
+      country: "España",
+      state: "Madrid",
+      phone: "+34 600 000 101",
+    },
+    {
+      name: "Javier",
+      last_name: "Sánchez",
+      doc: "DNI-100002",
+      email: "javier.sanchez@mail.com",
+      address: "Calle Luna 12",
+      country: "España",
+      state: "Sevilla",
+      phone: "+34 600 000 102",
+    },
+    {
+      name: "Carmen",
+      last_name: "Ruiz",
+      doc: "DNI-100003",
+      email: "carmen.ruiz@mail.com",
+      address: "Avenida del Sol 3",
+      country: "España",
+      state: "Málaga",
+      phone: "+34 600 000 103",
+    },
+    {
+      name: "Pablo",
+      last_name: "Martín",
+      doc: "DNI-100004",
+      email: "pablo.martin@mail.com",
+      address: "Calle Gran Vía 22",
+      country: "España",
+      state: "Barcelona",
+      phone: "+34 600 000 104",
+    },
+    {
+      name: "Lucía",
+      last_name: "Fernández",
+      doc: "DNI-100005",
+      email: "lucia.fernandez@mail.com",
+      address: "Passeig 55",
+      country: "España",
+      state: "Barcelona",
+      phone: "+34 600 000 105",
+    },
+    {
+      name: "Sergio",
+      last_name: "Gómez",
+      doc: "DNI-100006",
+      email: "sergio.gomez@mail.com",
+      address: "Calle Río 8",
+      country: "España",
+      state: "Zaragoza",
+      phone: "+34 600 000 106",
+    },
+    {
+      name: "Elena",
+      last_name: "Díaz",
+      doc: "DNI-100007",
+      email: "elena.diaz@mail.com",
+      address: "Calle Jardín 4",
+      country: "España",
+      state: "Bilbao",
+      phone: "+34 600 000 107",
+    },
+    {
+      name: "Raúl",
+      last_name: "Navarro",
+      doc: "DNI-100008",
+      email: "raul.navarro@mail.com",
+      address: "Calle Norte 19",
+      country: "España",
+      state: "Valencia",
+      phone: "+34 600 000 108",
+    },
+    {
+      name: "Patricia",
+      last_name: "Ortega",
+      doc: "DNI-100009",
+      email: "patricia.ortega@mail.com",
+      address: "Calle Sur 7",
+      country: "España",
+      state: "Murcia",
+      phone: "+34 600 000 109",
+    },
+    {
+      name: "Diego",
+      last_name: "Torres",
+      doc: "DNI-100010",
+      email: "diego.torres@mail.com",
+      address: "Avenida Mar 14",
+      country: "España",
+      state: "Alicante",
+      phone: "+34 600 000 110",
+    },
+  ];
 
-  const reservationB = await findOrCreateReservation({
-    start_date: addDays(today, 7),
-    end_date: addDays(today, 10),
-    resourceId: resourceLoft.id,
-    clientId: clientLuis.id,
-    price: 560,
-    confirmed: false,
-    active: true,
-    observation: "Pendiente de confirmación",
-  });
+  const clients = [clientAna, clientLuis];
+  for (const data of extraClients) {
+    const created = await findOrCreateClient(data);
+    clients.push(created);
+  }
 
-  await findOrCreateReservation({
-    start_date: addDays(today, 12),
-    end_date: addDays(today, 14),
-    resourceId: resourceCasa.id,
-    clientId: null,
-    price: 0,
-    confirmed: false,
-    active: false,
-    observation: "Mantenimiento",
-  });
+  const pickClientId = (index) => clients[index % clients.length].id;
 
-  await findOrCreatePayment({
-    reservationId: reservationA.id,
-    date: addDays(today, 1),
-    amount: 200,
-    observations: "Adelanto",
-  });
+  const resources = [
+    resourceCasa,
+    resourceLoft,
+    resourcePlaya,
+    resourceMontana,
+    resourceEstudio,
+    resourceDuplex,
+  ];
 
-  await findOrCreatePayment({
-    reservationId: reservationA.id,
-    date: addDays(today, 4),
-    amount: 220,
-    observations: "Saldo",
-  });
+  const scheduleTemplate = [
+    { month: 1, startDay: 3, endDay: 6, kind: "booking" },
+    { month: 1, startDay: 8, endDay: 12, kind: "booking" },
+    {
+      month: 1,
+      startDay: 15,
+      endDay: 17,
+      kind: "block",
+      observation: "Mantenimiento",
+    },
+    { month: 1, startDay: 20, endDay: 23, kind: "pending" },
+    { month: 1, startDay: 26, endDay: 30, kind: "booking" },
+    { month: 2, startDay: 2, endDay: 5, kind: "booking" },
+    { month: 2, startDay: 7, endDay: 10, kind: "pending" },
+    {
+      month: 2,
+      startDay: 12,
+      endDay: 14,
+      kind: "block",
+      observation: "Bloqueo",
+    },
+    { month: 2, startDay: 16, endDay: 20, kind: "booking" },
+    { month: 2, startDay: 23, endDay: 27, kind: "booking" },
+  ];
 
-  await findOrCreatePayment({
-    reservationId: reservationB.id,
-    date: addDays(today, 6),
-    amount: 150,
-    observations: "Reserva",
-  });
+  const reservations = [];
+  for (const [resourceIndex, resource] of resources.entries()) {
+    const dateShift = resourceIndex;
+    const basePrice = 420 + resourceIndex * 40;
+
+    for (const [i, slot] of scheduleTemplate.entries()) {
+      const start = makeDate(2026, slot.month, slot.startDay + dateShift);
+      const end = makeDate(2026, slot.month, slot.endDay + dateShift);
+
+      if (slot.kind === "block") {
+        reservations.push({
+          start,
+          end,
+          resourceId: resource.id,
+          clientId: null,
+          price: 0,
+          confirmed: false,
+          active: false,
+          observation: slot.observation,
+        });
+        continue;
+      }
+
+      const confirmed = slot.kind === "booking";
+      const observation =
+        slot.kind === "pending"
+          ? "Pendiente de confirmación"
+          : slot.month === 1
+            ? "Enero 2026"
+            : "Febrero 2026";
+
+      reservations.push({
+        start,
+        end,
+        resourceId: resource.id,
+        clientId: pickClientId(resourceIndex * 10 + i),
+        price: basePrice + i * 35,
+        confirmed,
+        active: true,
+        observation,
+      });
+    }
+  }
+
+  const createdReservations = [];
+  for (const r of reservations) {
+    const created = await findOrCreateReservation({
+      start_date: r.start,
+      end_date: r.end,
+      resourceId: r.resourceId,
+      clientId: r.clientId,
+      price: r.price,
+      confirmed: r.confirmed,
+      active: r.active,
+      observation: r.observation,
+    });
+    createdReservations.push(created);
+  }
+
+  for (const reservation of createdReservations.slice(0, 10)) {
+    if (!reservation.id_client) continue;
+    await findOrCreatePayment({
+      reservationId: reservation.id,
+      date: addDays(reservation.start_date, -1),
+      amount: Math.max(50, Math.round(reservation.price * 0.3)),
+      observations: "Adelanto",
+    });
+  }
 }
 
 try {
