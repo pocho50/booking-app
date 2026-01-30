@@ -44,7 +44,7 @@ const emit = defineEmits<{
       price: number;
       confirmed: boolean;
       active: boolean;
-    }
+    },
   ];
   cancel: [];
 }>();
@@ -69,7 +69,7 @@ const clientOptions = computed(() =>
   clients.value.map((c) => ({
     label: `${c.name} ${c.last_name}`.trim(),
     value: c.id,
-  }))
+  })),
 );
 
 const reservationFormSchema = reservationCreateFormSchema;
@@ -90,7 +90,7 @@ const state = reactive<{
   end_date: undefined,
   observation: undefined,
   price: undefined,
-  confirmed: false,
+  confirmed: true,
   active: true,
 });
 
@@ -110,7 +110,7 @@ watch(
       state.id_client = undefined;
       state.confirmed = false;
     }
-  }
+  },
 );
 
 watch(
@@ -124,7 +124,7 @@ watch(
       state.end_date = value;
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 watch(
@@ -146,18 +146,18 @@ watch(
     state.observation = value.observation ?? undefined;
     state.price = typeof value.price === "number" ? value.price : state.price;
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 function onSubmit(event: FormSubmitEvent<ReservationFormSchema>) {
   const start_date = event.data.start_date;
   const end_date = event.data.end_date;
   const active = event.data.active ?? true;
-  const confirmed = event.data.confirmed ?? false;
+  const confirmed = event.data.confirmed ?? true;
 
-  const price = active ? event.data.price ?? 0 : 0;
+  const price = active ? (event.data.price ?? 0) : 0;
 
-  const clientId = active ? event.data.id_client ?? null : null;
+  const clientId = active ? (event.data.id_client ?? null) : null;
 
   emit("submit", {
     clientId,
@@ -199,7 +199,7 @@ async function onCreateClientSubmit(data: ClientCreateInput) {
 }
 
 const resourceName = computed(
-  () => props.resource.name || props.resource.nombre || "Recurso"
+  () => props.resource.name || props.resource.nombre || "Recurso",
 );
 </script>
 
