@@ -128,6 +128,32 @@ export function useCalendarReservationDrawer(params: {
     }
   }
 
+  function syncPaymentsReservationFromCalendar(
+    resources: CalendarResourceDto[],
+  ) {
+    if (!paymentsReservationId.value) {
+      return;
+    }
+
+    const reservation = resources
+      .flatMap((resource) => resource.reservations || [])
+      .find((item) => item.id === paymentsReservationId.value);
+
+    if (!reservation) {
+      return;
+    }
+
+    paymentsReservation.value = {
+      ...paymentsReservation.value,
+      ...reservation,
+      clientFirstName:
+        paymentsReservation.value?.clientFirstName ??
+        reservation.clientFirstName,
+      clientLastName:
+        paymentsReservation.value?.clientLastName ?? reservation.clientLastName,
+    };
+  }
+
   async function onReservationSubmit(data: {
     clientId: string | null;
     start_date: string;
@@ -308,6 +334,7 @@ export function useCalendarReservationDrawer(params: {
     onPaymentsDrawerClose,
     openPaymentsById,
     syncEditingReservationSaldoFromCalendar,
+    syncPaymentsReservationFromCalendar,
     confirmDeleteReservation,
   };
 }

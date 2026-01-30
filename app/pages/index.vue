@@ -45,6 +45,7 @@ const {
   onPaymentsDrawerClose,
   openPaymentsById,
   syncEditingReservationSaldoFromCalendar,
+  syncPaymentsReservationFromCalendar,
   confirmDeleteReservation,
 } = useCalendarReservationDrawer({
   resources,
@@ -63,6 +64,7 @@ async function onMonthChange() {
 async function onPaymentsUpdated() {
   await refreshResources();
   syncEditingReservationSaldoFromCalendar(resources.value);
+  syncPaymentsReservationFromCalendar(resources.value);
 }
 </script>
 
