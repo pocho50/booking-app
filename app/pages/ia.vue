@@ -4,6 +4,7 @@ import type { UIMessage } from "ai";
 import type { ChartUIToolInvocation } from "~~/shared/utils/tools/chartLineTool";
 import type { BarChartUIToolInvocation } from "~~/shared/utils/tools/chartBarTool";
 import type { DonutChartUIToolInvocation } from "~~/shared/utils/tools/chartDonutTool";
+import type { ExportFileUIToolInvocation } from "~~/shared/utils/tools/exportFileTool";
 
 const messages: UIMessage[] = [];
 const input = ref("");
@@ -62,6 +63,11 @@ const onSubmit = (e: Event) => {
           <ToolsChartDonut
             v-else-if="part.type === 'tool-chartDonutTool'"
             :invocation="part as DonutChartUIToolInvocation"
+          />
+
+          <ToolsExportFile
+            v-else-if="part.type === 'tool-exportFileTool'"
+            :invocation="part as ExportFileUIToolInvocation"
           />
         </template>
       </template>

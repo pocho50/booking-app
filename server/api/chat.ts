@@ -18,6 +18,7 @@ import { toJsonSafe, validateSql } from "../utils/sql";
 import { chartLineTool } from "../../shared/utils/tools/chartLineTool";
 import { chartBarTool } from "../../shared/utils/tools/chartBarTool";
 import { chartDonutTool } from "../../shared/utils/tools/chartDonutTool";
+import { exportFileTool } from "../../shared/utils/tools/exportFileTool";
 
 export default defineLazyEventHandler(async () => {
   const apiKey = useRuntimeConfig().aiGatewayApiKey;
@@ -107,6 +108,7 @@ You can return the information in whatever way you consider clearest:
         chartLineTool,
         chartBarTool,
         chartDonutTool,
+        exportFileTool,
       },
     });
 

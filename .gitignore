@@ -29,3 +29,5 @@ dev.db-*
 
 prisma/generated
 .devtools
+
+.tmp
