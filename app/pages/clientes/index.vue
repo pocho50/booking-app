@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import { h, resolveComponent } from "vue";
 import type { TableColumn } from "@nuxt/ui";
-import { listClients, type ClientDto } from "../../services/clientService";
+import {
+  listClients,
+  type ClientListItemDto,
+} from "../../services/clientService";
+import { formatMoney } from "../../../shared/utils/moneyFormat";
 import { useTableSearchPagination } from "../../composables/useTableSearchPagination";
 
 const UButton = resolveComponent("UButton");
+const UBadge = resolveComponent("UBadge");
 
 const {
   data: clientsData,
   pending,
   refresh,
   error,
-} = await useAsyncData<ClientDto[]>("clients", () => listClients());
+} = await useAsyncData<ClientListItemDto[]>("clients", () => listClients());
 
 const clients = computed(() => clientsData.value ?? []);
 
@@ -23,17 +28,37 @@ const {
   paginatedItems: paginatedClients,
   totalPages,
   pageSizeOptions,
-} = useTableSearchPagination<ClientDto>({
+} = useTableSearchPagination<ClientListItemDto>({
   items: clients,
-  searchFields: (c) => [c.name, c.last_name, c.doc, c.email, c.phone],
+  searchFields: (c) => [c.name, c.last_name, c.doc, c.email, c.phone, c.saldo],
 });
 
-const columns: TableColumn<ClientDto>[] = [
+const columns: TableColumn<ClientListItemDto>[] = [
   { accessorKey: "name", header: "Nombre" },
   { accessorKey: "last_name", header: "Apellido" },
   { accessorKey: "doc", header: "Doc" },
   { accessorKey: "email", header: "Email" },
   { accessorKey: "phone", header: "Teléfono" },
+  {
+    accessorKey: "saldo",
+    header: "Saldo",
+    meta: {
+      class: {
+        th: "text-right",
+        td: "text-right",
+      },
+    },
+    cell: ({ row }) =>
+      h(
+        UBadge as any,
+        {
+          size: "md",
+          variant: "subtle",
+          color: row.original.saldo <= 0 ? "success" : "error",
+        },
+        () => formatMoney(row.original.saldo),
+      ),
+  },
   {
     id: "actions",
     header: "Acciones",
@@ -53,7 +78,7 @@ const columns: TableColumn<ClientDto>[] = [
           variant: "outline",
           to: `/clientes/${row.original.id}`,
         },
-        () => "Editar"
+        () => "Editar",
       ),
   },
 ];

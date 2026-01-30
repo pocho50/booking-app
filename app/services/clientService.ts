@@ -1,15 +1,21 @@
 import type {
   ClientCreateInput,
   ClientDto,
+  ClientListItemDto,
   ClientUpdateInput,
 } from "../../shared/types/client";
 
-export type { ClientCreateInput, ClientDto, ClientUpdateInput };
+export type {
+  ClientCreateInput,
+  ClientDto,
+  ClientListItemDto,
+  ClientUpdateInput,
+};
 
-export async function listClients(): Promise<ClientDto[]> {
+export async function listClients(): Promise<ClientListItemDto[]> {
   const { $api } = useNuxtApp();
 
-  return $api<ClientDto[]>("/clients");
+  return $api<ClientListItemDto[]>("/clients");
 }
 
 export async function getClient(id: string): Promise<ClientDto> {
@@ -19,7 +25,7 @@ export async function getClient(id: string): Promise<ClientDto> {
 }
 
 export async function createClient(
-  data: ClientCreateInput
+  data: ClientCreateInput,
 ): Promise<ClientDto> {
   const { $api } = useNuxtApp();
 
@@ -31,7 +37,7 @@ export async function createClient(
 
 export async function updateClient(
   id: string,
-  data: ClientUpdateInput
+  data: ClientUpdateInput,
 ): Promise<ClientDto> {
   const { $api } = useNuxtApp();
 

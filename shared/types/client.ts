@@ -10,6 +10,10 @@ export type ClientDto = {
   phone: string;
 };
 
+export type ClientListItemDto = ClientDto & {
+  saldo: number;
+};
+
 export type ClientCreateInput = Omit<ClientDto, "id">;
 
 export type ClientUpdateInput = Partial<ClientCreateInput>;
