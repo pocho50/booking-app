@@ -1,22 +1,24 @@
 <script setup lang="ts">
-import type { ExportFileUIToolInvocation } from "~~/shared/utils/tools/exportFileTool";
+import type { SendEmailUIToolInvocation } from "~~/shared/utils/tools/sendEmailTool";
+import { useToolStatusCard } from "~~/app/composables/useToolStatusCard";
 
 const props = defineProps<{
-  invocation: ExportFileUIToolInvocation;
+  invocation: SendEmailUIToolInvocation;
 }>();
 
 const { color, icon, message, isStreaming } = useToolStatusCard({
-  state: computed(() => props.invocation.state as string),
+  state: computed(() => props.invocation.state),
   icons: {
-    "input-available": "i-lucide-file-down",
+    "input-available": "i-lucide-mail",
+    "output-available": "i-lucide-mail-check",
   },
   messages: {
-    "input-available": "Generando archivo...",
+    "input-available": "Enviando email...",
+    "output-available": "Email enviado.",
   },
-  defaultMessage: "Preparando archivo...",
+  defaultMessage: "Preparando envío...",
+  defaultIcon: "i-lucide-loader-circle",
 });
-
-const downloadUrl = computed(() => props.invocation.output?.url ?? "");
 </script>
 
 <template>
@@ -26,29 +28,24 @@ const downloadUrl = computed(() => props.invocation.output?.url ?? "");
         <div class="min-w-0">
           <div class="flex items-center gap-2">
             <UIcon
-              name="i-lucide-file-down"
+              name="i-lucide-mail-check"
               class="size-5 text-primary shrink-0"
             />
             <div class="min-w-0">
               <h3 class="text-base font-semibold text-highlighted truncate">
-                {{ invocation.output.title ?? invocation.output.filename }}
+                {{ invocation.output.subject }}
               </h3>
               <p class="text-sm text-muted truncate">
-                {{ invocation.output.filename }}
+                Para:
+                {{
+                  Array.isArray(invocation.output.to)
+                    ? invocation.output.to.join(", ")
+                    : ""
+                }}
               </p>
             </div>
           </div>
         </div>
-
-        <UButton
-          color="primary"
-          :to="downloadUrl"
-          target="_blank"
-          icon="i-lucide-download"
-          :disabled="!downloadUrl"
-        >
-          Descargar
-        </UButton>
       </div>
     </div>
   </div>

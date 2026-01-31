@@ -19,6 +19,7 @@ import { chartLineTool } from "../../shared/utils/tools/chartLineTool";
 import { chartBarTool } from "../../shared/utils/tools/chartBarTool";
 import { chartDonutTool } from "../../shared/utils/tools/chartDonutTool";
 import { exportFileTool } from "../../shared/utils/tools/exportFileTool";
+import { sendEmailTool } from "../../shared/utils/tools/sendEmailTool";
 
 export default defineLazyEventHandler(async () => {
   const apiKey = useRuntimeConfig().aiGatewayApiKey;
@@ -109,6 +110,7 @@ You can return the information in whatever way you consider clearest:
         chartBarTool,
         chartDonutTool,
         exportFileTool,
+        sendEmailTool,
       },
     });
 

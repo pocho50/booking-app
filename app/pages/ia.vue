@@ -5,6 +5,7 @@ import type { ChartUIToolInvocation } from "~~/shared/utils/tools/chartLineTool"
 import type { BarChartUIToolInvocation } from "~~/shared/utils/tools/chartBarTool";
 import type { DonutChartUIToolInvocation } from "~~/shared/utils/tools/chartDonutTool";
 import type { ExportFileUIToolInvocation } from "~~/shared/utils/tools/exportFileTool";
+import type { SendEmailUIToolInvocation } from "~~/shared/utils/tools/sendEmailTool";
 
 const messages: UIMessage[] = [];
 const input = ref("");
@@ -77,11 +78,17 @@ const onSubmit = (e: Event) => {
             v-else-if="part.type === 'tool-exportFileTool'"
             :invocation="part as ExportFileUIToolInvocation"
           />
+
+          <ToolsSendEmail
+            v-else-if="part.type === 'tool-sendEmailTool'"
+            :invocation="part as SendEmailUIToolInvocation"
+          />
         </template>
       </template>
     </UChatMessages>
 
     <div class="sticky bottom-5 p-4 sm:pb-6">
+      {{ chat.status }}
       <UChatPrompt
         v-model="input"
         placeholder="Escribe tu mensaje"

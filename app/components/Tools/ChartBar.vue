@@ -103,7 +103,7 @@ const yAxis = (invocation: BarChartUIToolInvocation) => {
     </div>
   </div>
 
-  <ToolsToolStatusCard
+  <ToolsStatusCard
     v-else
     :color="color"
     :icon="icon"
