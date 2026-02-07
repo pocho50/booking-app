@@ -18,6 +18,24 @@ function makeDate(year, month, day) {
   return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
 }
 
+function getSpanishMonthName(month) {
+  const months = [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
+  ];
+  return months[month - 1] ?? "";
+}
+
 async function findOrCreateUser({ name, email, password, role }) {
   const existing = await prisma.user.findFirst({ where: { email } });
   if (existing) {
@@ -91,10 +109,10 @@ async function findOrCreateReservation({
   const existing = await prisma.reservation.findFirst({
     where: {
       id_resource: resourceId,
-      start_date,
-      end_date,
-      id_client: clientId ?? null,
+      start_date: { lte: end_date },
+      end_date: { gte: start_date },
     },
+    select: { id: true },
   });
 
   if (existing) {
@@ -327,29 +345,38 @@ async function main() {
     resourceDuplex,
   ];
 
+  const now = new Date();
+  const baseYear = now.getUTCFullYear();
+  const baseMonth = now.getUTCMonth() + 1;
+  const nextYear = baseMonth === 12 ? baseYear + 1 : baseYear;
+  const nextMonth = baseMonth === 12 ? 1 : baseMonth + 1;
+
+  const monthForOffset = (offset) => (offset === 0 ? baseMonth : nextMonth);
+  const yearForOffset = (offset) => (offset === 0 ? baseYear : nextYear);
+
   const scheduleTemplate = [
-    { month: 1, startDay: 3, endDay: 6, kind: "booking" },
-    { month: 1, startDay: 8, endDay: 12, kind: "booking" },
+    { monthOffset: 0, startDay: 3, endDay: 6, kind: "booking" },
+    { monthOffset: 0, startDay: 8, endDay: 12, kind: "booking" },
     {
-      month: 1,
+      monthOffset: 0,
       startDay: 15,
       endDay: 17,
       kind: "block",
       observation: "Mantenimiento",
     },
-    { month: 1, startDay: 20, endDay: 23, kind: "pending" },
-    { month: 1, startDay: 26, endDay: 30, kind: "booking" },
-    { month: 2, startDay: 2, endDay: 5, kind: "booking" },
-    { month: 2, startDay: 7, endDay: 10, kind: "pending" },
+    { monthOffset: 0, startDay: 20, endDay: 23, kind: "pending" },
+    { monthOffset: 0, startDay: 26, endDay: 30, kind: "booking" },
+    { monthOffset: 1, startDay: 2, endDay: 5, kind: "booking" },
+    { monthOffset: 1, startDay: 7, endDay: 10, kind: "pending" },
     {
-      month: 2,
+      monthOffset: 1,
       startDay: 12,
       endDay: 14,
       kind: "block",
       observation: "Bloqueo",
     },
-    { month: 2, startDay: 16, endDay: 20, kind: "booking" },
-    { month: 2, startDay: 23, endDay: 27, kind: "booking" },
+    { monthOffset: 1, startDay: 16, endDay: 20, kind: "booking" },
+    { monthOffset: 1, startDay: 23, endDay: 27, kind: "booking" },
   ];
 
   const reservations = [];
@@ -358,8 +385,11 @@ async function main() {
     const basePrice = 420 + resourceIndex * 40;
 
     for (const [i, slot] of scheduleTemplate.entries()) {
-      const start = makeDate(2026, slot.month, slot.startDay + dateShift);
-      const end = makeDate(2026, slot.month, slot.endDay + dateShift);
+      const slotMonth = monthForOffset(slot.monthOffset);
+      const slotYear = yearForOffset(slot.monthOffset);
+
+      const start = makeDate(slotYear, slotMonth, slot.startDay + dateShift);
+      const end = makeDate(slotYear, slotMonth, slot.endDay + dateShift);
 
       if (slot.kind === "block") {
         reservations.push({
@@ -379,9 +409,7 @@ async function main() {
       const observation =
         slot.kind === "pending"
           ? "Pendiente de confirmación"
-          : slot.month === 1
-            ? "Enero 2026"
-            : "Febrero 2026";
+          : `${getSpanishMonthName(slotMonth)} ${slotYear}`;
 
       reservations.push({
         start,
