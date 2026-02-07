@@ -1,11 +1,6 @@
 import * as z from "zod";
 
-function requiredString(message: string) {
-  return z.preprocess(
-    (value) => (typeof value === "string" ? value : ""),
-    z.string().min(1, message)
-  );
-}
+import { requiredString } from "./helpers";
 
 export const loginSchema = z.object({
   username: requiredString("El usuario es obligatorio"),

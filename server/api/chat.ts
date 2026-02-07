@@ -39,7 +39,7 @@ export default defineLazyEventHandler(async () => {
     middleware: devToolsMiddleware(),
   });
 
-  return defineEventHandler(async (event: any) => {
+  return defineEventHandler(async (event) => {
     const { messages }: { messages: UIMessage[] } = await readBody(event);
 
     const result = streamText({
@@ -65,6 +65,8 @@ You can return the information in whatever way you consider clearest:
 - A list
 - A short summary
 - Any combination that makes the report easier to read
+
+If you generate HTML, make sure it is readable in both light mode and dark mode (avoid hardcoded colors; prefer neutral styling).
 
 ⚠️ Just make sure the data is correct, and if you generate HTML, it must be safe`,
       messages: await convertToModelMessages(messages),

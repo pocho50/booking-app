@@ -1,11 +1,6 @@
 import * as z from "zod";
 
-function requiredString(message: string) {
-  return z.preprocess(
-    (value) => (typeof value === "string" ? value : ""),
-    z.string().min(1, message),
-  );
-}
+import { requiredString } from "./helpers";
 
 const isoDateString = (message: string) =>
   z
@@ -15,36 +10,15 @@ const isoDateString = (message: string) =>
     )
     .transform((v) => v);
 
-const amountSchema = z.preprocess(
-  (v) => {
-    if (typeof v === "number") {
-      return v;
-    }
-    if (typeof v === "string") {
-      const trimmed = v.trim();
-      if (!trimmed) {
-        return Number.NaN;
-      }
-      return Number(trimmed);
-    }
-    return Number.NaN;
-  },
-  z
-    .number()
-    .refine((n) => Number.isFinite(n), "El importe es obligatorio")
-    .refine((n) => n >= 0, "El importe debe ser >= 0"),
-);
+const amountSchema = z
+  .number({ message: "El importe debe ser un número" })
+  .refine((n) => n > 0, "El importe debe ser mayor a 0");
 
 const paymentBaseSchema = z.object({
   date: isoDateString("La fecha es obligatoria"),
   id_reservation: requiredString("La reserva es obligatoria"),
   amount: amountSchema,
-  observations: z
-    .preprocess(
-      (v) => (typeof v === "string" ? v : undefined),
-      z.string().optional(),
-    )
-    .optional(),
+  observations: z.string().optional(),
 });
 
 export const paymentCreateSchema = paymentBaseSchema;

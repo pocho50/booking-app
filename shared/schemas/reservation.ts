@@ -1,11 +1,6 @@
 import * as z from "zod";
 
-function requiredString(message: string) {
-  return z.preprocess(
-    (value) => (typeof value === "string" ? value : ""),
-    z.string().min(1, message)
-  );
-}
+import { requiredString } from "./helpers";
 
 function coerceBoolean(value: unknown) {
   if (value === false || value === 0 || value === "0") {
@@ -30,7 +25,7 @@ const isoDateString = (message: string) =>
   z
     .preprocess(
       (value) => (typeof value === "string" ? value : ""),
-      z.string().regex(/^\d{4}-\d{2}-\d{2}$/, message)
+      z.string().regex(/^\d{4}-\d{2}-\d{2}$/, message),
     )
     .transform((v) => v);
 
@@ -52,7 +47,7 @@ const priceSchema = z.preprocess(
     .number()
     .optional()
     .refine((n) => n === undefined || Number.isFinite(n), "Precio inválido")
-    .refine((n) => n === undefined || n >= 0, "El precio debe ser >= 0")
+    .refine((n) => n === undefined || n >= 0, "El precio debe ser >= 0"),
 );
 
 const reservationBaseSchema = z.object({
@@ -61,12 +56,12 @@ const reservationBaseSchema = z.object({
   id_resource: requiredString("El recurso es obligatorio"),
   id_client: z.preprocess(
     (v) => (typeof v === "string" && v.length > 0 ? v : null),
-    z.string().nullable()
+    z.string().nullable(),
   ),
   observation: z
     .preprocess(
       (v) => (typeof v === "string" ? v : undefined),
-      z.string().optional()
+      z.string().optional(),
     )
     .optional(),
   price: priceSchema,
@@ -78,7 +73,7 @@ export const reservationCreateSchema = reservationBaseSchema
   .superRefine((data, ctx) => {
     if (data.start_date && data.end_date && data.start_date > data.end_date) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "La fecha hasta no puede ser menor que la fecha desde",
         path: ["end_date"],
       });
@@ -86,7 +81,7 @@ export const reservationCreateSchema = reservationBaseSchema
 
     if (data.active !== false && !data.id_client) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "El cliente es obligatorio",
         path: ["id_client"],
       });
@@ -94,7 +89,7 @@ export const reservationCreateSchema = reservationBaseSchema
 
     if (data.active !== false && data.price === undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "El precio es obligatorio",
         path: ["price"],
       });
@@ -110,7 +105,7 @@ export const reservationCreateFormSchema = reservationBaseSchema
   .superRefine((data, ctx) => {
     if (data.start_date && data.end_date && data.start_date > data.end_date) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "La fecha hasta no puede ser menor que la fecha desde",
         path: ["end_date"],
       });
@@ -118,7 +113,7 @@ export const reservationCreateFormSchema = reservationBaseSchema
 
     if (data.active !== false && !data.id_client) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "El cliente es obligatorio",
         path: ["id_client"],
       });
@@ -126,7 +121,7 @@ export const reservationCreateFormSchema = reservationBaseSchema
 
     if (data.active !== false && data.price === undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "El precio es obligatorio",
         path: ["price"],
       });
@@ -138,7 +133,7 @@ export const reservationUpdateSchema = reservationBaseSchema
   .superRefine((data, ctx) => {
     if (data.start_date && data.end_date && data.start_date > data.end_date) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "La fecha hasta no puede ser menor que la fecha desde",
         path: ["end_date"],
       });
@@ -147,7 +142,7 @@ export const reservationUpdateSchema = reservationBaseSchema
     if (data.active !== false) {
       if (data.id_client === null) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "El cliente es obligatorio",
           path: ["id_client"],
         });

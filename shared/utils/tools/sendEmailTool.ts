@@ -68,10 +68,14 @@ export const sendEmailTool = tool({
         ? { ...messageDataBase, html }
         : { ...messageDataBase, text: text as string };
 
-    let data: unknown;
+    type MailgunMessagesCreateResult = Awaited<
+      ReturnType<typeof mg.messages.create>
+    >;
+
+    let data: MailgunMessagesCreateResult;
     try {
       data = await mg.messages.create(domain, messageData);
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("[sendEmailTool] Mailgun error", error);
 
       const err = error as any;
@@ -106,8 +110,8 @@ export const sendEmailTool = tool({
     return {
       to: resolvedTo,
       subject,
-      id: (data as any)?.id,
-      message: (data as any)?.message,
+      id: data.id,
+      message: data.message,
     };
   },
 });

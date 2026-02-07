@@ -1,18 +1,6 @@
 import * as z from "zod";
 
-function requiredString(message: string) {
-  return z.preprocess(
-    (value) => (typeof value === "string" ? value : ""),
-    z.string().min(1, message)
-  );
-}
-
-function requiredEmail() {
-  return z.preprocess(
-    (value) => (typeof value === "string" ? value : ""),
-    z.string().min(1, "El email es obligatorio").email("Email inválido")
-  );
-}
+import { requiredEmail, requiredString } from "./helpers";
 
 export const clientCreateSchema = z.object({
   name: requiredString("El nombre es obligatorio"),

@@ -196,7 +196,7 @@ const columns: TableColumn<PaymentDto>[] = [
         <div>
           <UFormField label="Monto" name="amount" required>
             <UInput
-              v-model="paymentState.amount"
+              v-model.number="paymentState.amount"
               class="w-full"
               placeholder="0"
             />

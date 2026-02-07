@@ -88,7 +88,6 @@ const onSubmit = (e: Event) => {
     </UChatMessages>
 
     <div class="sticky bottom-5 p-4 sm:pb-6">
-      {{ chat.status }}
       <UChatPrompt
         v-model="input"
         placeholder="Escribe tu mensaje"

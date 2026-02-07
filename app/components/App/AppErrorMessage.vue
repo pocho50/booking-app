@@ -15,7 +15,7 @@ const props = withDefaults(
     fallbackMessage: "Ocurrió un error inesperado.",
     showRetry: false,
     retryLabel: "Reintentar",
-  }
+  },
 );
 
 const emit = defineEmits<{
