@@ -1,60 +1,148 @@
-# Nuxt Starter Template
+# Reservation App
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+Nuxt 4 reservation management app with a calendar UI, payments tracking, and an AI assistant chat that can query the database and generate charts/exports or send reports by email.
 
-Use this template to get started with [Nuxt UI](https://ui.nuxt.com) quickly.
+## Disclaimer (demo/educational only)
 
-- [Live demo](https://starter-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
+This repository is provided **for demonstration and educational purposes only**.
 
-<a href="https://starter-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-    <img alt="Nuxt Starter Template" src="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-  </picture>
-</a>
+It is **not intended for production use**. It has not been fully tested, security-audited, or hardened.
 
-> The starter template for Vue is on https://github.com/nuxt-ui-templates/starter-vue.
+## Tech stack
 
-## Quick Start
+- **Framework**: Nuxt 4 (Vue 3)
+- **UI**: Nuxt UI
+- **AI**: `ai` + `@ai-sdk/vue` + AI Gateway
+- **Database**: SQLite + Prisma
+- **Charts**: `nuxt-charts` (Unovis / vue-chrts)
+- **Email**: Mailgun (`mailgun.js` + `form-data`)
 
-```bash [Terminal]
-npm create nuxt@latest -- -t github:nuxt-ui-templates/starter
-```
+## Features
 
-## Deploy your own
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=starter&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fstarter&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fstarter-dark.png&demo-url=https%3A%2F%2Fstarter-template.nuxt.dev%2F&demo-title=Nuxt%20Starter%20Template&demo-description=A%20minimal%20template%20to%20get%20started%20with%20Nuxt%20UI.)
+- **Calendar reservations**
+- **Clients & resources**
+- **Payments per reservation** (and balance calculation)
+- **AI chat page** (`/ia`)
+  - Runs **safe SQL SELECT** queries through a tool
+  - Generates charts (Line / Bar / Donut)
+  - Generates downloadable CSV exports
+  - Sends email reports via Mailgun
 
 ## Setup
 
-Make sure to install the dependencies:
+1. Install dependencies
 
 ```bash
 pnpm install
 ```
 
-## Development Server
+2. Create your env file
 
-Start the development server on `http://localhost:3000`:
+```bash
+cp .env.example .env
+```
+
+3. Configure environment variables (see below)
+
+4. Apply database migrations
+
+```bash
+pnpm dlx prisma migrate deploy
+```
+
+If you are working locally and want Prisma to manage migrations in development, you can also use:
+
+```bash
+pnpm dlx prisma migrate dev
+```
+
+5. Seed the database (demo data)
+
+```bash
+pnpm seed
+```
+
+Demo credentials created by the seed:
+
+- Email: `admin@demo.com`
+- Password: `admin123`
+
+6. Run the app
 
 ```bash
 pnpm dev
 ```
 
-## Production
+## Environment variables
 
-Build the application for production:
+To use the AI chat and email features, you will need to create accounts in external services to obtain the required API keys:
 
-```bash
-pnpm build
-```
+- **Vercel (AI Gateway)**: required for `NUXT_AI_GATEWAY_API_KEY`
+- **Mailgun**: required for `NUXT_MAILGUN_API_KEY`, `NUXT_MAILGUN_DOMAIN`, `NUXT_MAILGUN_FROM`, `NUXT_MAILGUN_TO`
 
-Locally preview production build:
+Set these variables in your `.env` file:
 
-```bash
-pnpm preview
-```
+- `DATABASE_URL`
+  - SQLite connection string.
+  - Example: `file:./dev.db`
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+- `NUXT_AI_GATEWAY_API_KEY`
+  - **Value**: Your Vercel AI Gateway API key.
+
+- `NUXT_MAILGUN_API_KEY`
+  - **Value**: Your Mailgun **Private API Key** .
+
+- `NUXT_MAILGUN_DOMAIN`
+  - **Value**: Your Mailgun sending domain.
+  - Example: `mg.yourdomain.com`
+
+- `NUXT_MAILGUN_FROM`
+  - **Value**: Sender address.
+  - Example: `Reservation App <noreply@mg.yourdomain.com>`
+
+- `NUXT_MAILGUN_TO`
+  - **Value**: Default recipient list (comma-separated).
+  - Example: `owner@yourdomain.com, admin@yourdomain.com`
+
+## Scripts
+
+- **Dev**: `pnpm dev`
+- **Build**: `pnpm build`
+- **Preview**: `pnpm preview`
+- **Lint**: `pnpm lint`
+- **Typecheck**: `pnpm typecheck`
+- **Seed DB**: `pnpm seed`
+
+`postinstall` runs:
+
+- `nuxt prepare`
+- `prisma generate`
+
+Note: `prisma generate` generates the Prisma client, but it does not apply migrations. You still need to run migrations at least once for a fresh database.
+
+## AI chat and tools
+
+The chat backend lives in `server/api/chat.ts` and streams responses.
+
+Available tools:
+
+- **`executeSql`**: runs validated **SELECT-only** queries
+- **`chartLineTool`**: generates line chart data
+- **`chartBarTool`**: generates bar chart data
+- **`chartDonutTool`**: generates donut chart data
+- **`exportFileTool`**: generates a CSV file and returns a download URL
+- **`sendEmailTool`**: sends an email report via Mailgun
+
+### Exports
+
+CSV exports are stored under:
+
+- `.tmp/exports`
+
+The download endpoint is:
+
+- `GET /api/exports/:id`
+
+## License
+
+Private / internal project.
