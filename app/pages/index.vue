@@ -5,7 +5,6 @@ import type { CalendarResourceDto } from "../../shared/types/calendar";
 const today = new Date();
 const month = ref(today.getMonth() + 1);
 const year = ref(today.getFullYear());
-const loading = ref(false);
 
 const {
   data: resourcesData,
@@ -52,15 +51,6 @@ const {
   refreshResources,
 });
 
-async function onMonthChange() {
-  loading.value = true;
-  try {
-    await refreshResources();
-  } finally {
-    loading.value = false;
-  }
-}
-
 async function onPaymentsUpdated() {
   await refreshResources();
   syncEditingReservationSaldoFromCalendar(resources.value);
@@ -74,8 +64,7 @@ async function onPaymentsUpdated() {
       v-model:month="month"
       v-model:year="year"
       :resources="resources"
-      :loading="loading || resourcesPending"
-      @month-change="onMonthChange"
+      :loading="resourcesPending"
       @available-day-click="onAvailableDayClick"
       @reservation-edit="onReservationEdit"
       @reservation-payments="onReservationPayments"
