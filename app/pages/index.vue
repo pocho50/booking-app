@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { listCalendarResources } from "../services/calendarService";
-import type { CalendarResourceDto } from "../../shared/types/calendar";
 
 const today = new Date();
 const month = ref(today.getMonth() + 1);

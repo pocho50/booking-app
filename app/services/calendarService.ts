@@ -1,5 +1,3 @@
-import type { CalendarResourceDto } from "../../shared/types/calendar";
-
 export async function listCalendarResources(params: {
   month: number;
   year: number;

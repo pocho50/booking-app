@@ -1,7 +1,3 @@
-import type {
-  PaymentCreateForReservationInput,
-  PaymentDto,
-} from "../../shared/types/payment";
 import {
   createPaymentForReservation,
   deletePayment,

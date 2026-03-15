@@ -3,7 +3,7 @@ import type {
   ClientDto,
   ClientListItemDto,
   ClientUpdateInput,
-} from "../../shared/types/client";
+} from "~~/shared/types/client";
 
 export type {
   ClientCreateInput,

@@ -1,4 +1,3 @@
-import type { CalendarResourceDto } from "../../shared/types/calendar";
 import { useReservationEditorDrawer } from "./useReservationEditorDrawer";
 import { usePaymentsDrawer } from "./usePaymentsDrawer";
 import { useReservationDelete } from "./useReservationDelete";

@@ -1,8 +1,3 @@
-import type {
-  CalendarResourceDto,
-  CalendarReservationDto,
-} from "../../shared/types/calendar";
-
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export function buildIsoDate({
@@ -22,9 +17,7 @@ export function findResourceById(
   resourceId: string | number,
 ): CalendarResourceDto | null {
   return (
-    (resources || []).find(
-      (r) => String(r.id) === String(resourceId),
-    ) ?? null
+    (resources || []).find((r) => String(r.id) === String(resourceId)) ?? null
   );
 }
 
@@ -39,10 +32,7 @@ export function findCalendarReservationById(
 
 export function mergeClientNames<
   T extends { clientFirstName?: string; clientLastName?: string },
->(
-  base: T | null | undefined,
-  override: T | null | undefined,
-): T | null {
+>(base: T | null | undefined, override: T | null | undefined): T | null {
   if (!override) {
     return (base as T) ?? null;
   }

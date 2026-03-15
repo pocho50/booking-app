@@ -1,13 +1,3 @@
-import type {
-  CalendarResourceDto,
-  CalendarReservationDto,
-} from "../../shared/types/calendar";
-import type {
-  ReservationCreateInput,
-  ReservationDto,
-  ReservationUpdateInput,
-} from "../../shared/types/reservation";
-import { formatIsoDateTo } from "../../shared/utils/dateFormat";
 import {
   createReservation,
   getReservation,
@@ -159,10 +149,7 @@ export function useReservationEditorDrawer(params: {
       return;
     }
 
-    const reservation = findCalendarReservationById(
-      editingId.value,
-      resources,
-    );
+    const reservation = findCalendarReservationById(editingId.value, resources);
 
     if (reservation && typeof reservation.saldo === "number") {
       initialValues.value = {

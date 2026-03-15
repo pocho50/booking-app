@@ -3,7 +3,7 @@ import type {
   ReservationDto,
   ReservationListItemDto,
   ReservationUpdateInput,
-} from "../../shared/types/reservation";
+} from "~~/shared/types/reservation";
 
 export async function listReservations(): Promise<ReservationListItemDto[]> {
   const { $api } = useNuxtApp();
@@ -28,7 +28,7 @@ export async function getReservation(id: string) {
 
 export async function updateReservation(
   id: string,
-  data: ReservationUpdateInput
+  data: ReservationUpdateInput,
 ) {
   const { $api } = useNuxtApp();
 

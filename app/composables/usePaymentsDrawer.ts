@@ -1,7 +1,3 @@
-import type {
-  CalendarResourceDto,
-  CalendarReservationDto,
-} from "../../shared/types/calendar";
 import {
   findCalendarReservationById,
   mergeClientNames,

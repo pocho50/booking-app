@@ -1,8 +1,3 @@
-import type {
-  PaymentCreateForReservationInput,
-  PaymentDto,
-} from "../../shared/types/payment";
-
 export async function listPaymentsByReservation(reservationId: string) {
   const { $api } = useNuxtApp();
 

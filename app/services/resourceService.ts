@@ -2,7 +2,7 @@ import type {
   ResourceCreateInput,
   ResourceDto,
   ResourceUpdateInput,
-} from "../../shared/types/resource";
+} from "~~/shared/types/resource";
 
 export type { ResourceCreateInput, ResourceDto, ResourceUpdateInput };
 
@@ -19,7 +19,7 @@ export async function getResource(id: string): Promise<ResourceDto> {
 }
 
 export async function createResource(
-  data: ResourceCreateInput
+  data: ResourceCreateInput,
 ): Promise<ResourceDto> {
   const { $api } = useNuxtApp();
 
@@ -31,7 +31,7 @@ export async function createResource(
 
 export async function updateResource(
   id: string,
-  data: ResourceUpdateInput
+  data: ResourceUpdateInput,
 ): Promise<ResourceDto> {
   const { $api } = useNuxtApp();
 
