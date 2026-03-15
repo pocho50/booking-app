@@ -3,8 +3,6 @@ import { h, resolveComponent } from "vue";
 import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
 import { listReservations } from "../../services/reservationService";
 import type { ReservationListItemDto } from "../../../shared/types/reservation";
-import { formatIsoDateTo } from "../../../shared/utils/dateFormat";
-import { formatMoney } from "../../../shared/utils/moneyFormat";
 import { useTableSearchPagination } from "../../composables/useTableSearchPagination";
 
 const UBadge = resolveComponent("UBadge");

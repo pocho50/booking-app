@@ -5,7 +5,7 @@ import {
   listClients,
   type ClientListItemDto,
 } from "../../services/clientService";
-import { formatMoney } from "../../../shared/utils/moneyFormat";
+
 import { useTableSearchPagination } from "../../composables/useTableSearchPagination";
 
 const UBadge = resolveComponent("UBadge");

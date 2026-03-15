@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { CalendarReservationDto } from "../../../shared/types/calendar";
-import { formatIsoDateTo } from "../../../shared/utils/dateFormat";
-import { formatMoney } from "../../../shared/utils/moneyFormat";
 
 const open = defineModel<boolean>("open", { default: false });
 
@@ -37,7 +35,9 @@ const emit = defineEmits<{
         >
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <div class="text-xs uppercase tracking-wide text-muted">Saldo</div>
+              <div class="text-xs uppercase tracking-wide text-muted">
+                Saldo
+              </div>
               <div class="text-lg font-semibold text-highlighted">
                 {{ formatMoney(reservation.saldo ?? reservation.price ?? 0) }}
               </div>
@@ -48,7 +48,9 @@ const emit = defineEmits<{
                 variant="subtle"
                 :color="reservation.confirmed === 0 ? 'warning' : 'success'"
               >
-                {{ reservation.confirmed === 0 ? "No confirmado" : "Confirmado" }}
+                {{
+                  reservation.confirmed === 0 ? "No confirmado" : "Confirmado"
+                }}
               </UBadge>
               <UBadge
                 size="sm"
@@ -73,7 +75,11 @@ const emit = defineEmits<{
             <div class="flex items-center gap-3">
               <span class="text-muted">Fin</span>
               <span class="font-medium">
-                {{ reservation.endDate ? formatIsoDateTo(reservation.endDate) : "-" }}
+                {{
+                  reservation.endDate
+                    ? formatIsoDateTo(reservation.endDate)
+                    : "-"
+                }}
               </span>
             </div>
           </div>

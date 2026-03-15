@@ -3,7 +3,6 @@ import type {
   CalendarReservationDto,
   CalendarResourceDto,
 } from "../../../shared/types/calendar";
-import { formatMoney } from "../../../shared/utils/moneyFormat";
 
 type CalendarReservation = CalendarReservationDto & {
   _idx?: number;

@@ -4,7 +4,6 @@ import type {
   CalendarResourceDto,
 } from "../../../shared/types/calendar";
 import type { ReservationDto } from "../../../shared/types/reservation";
-import { formatMoney } from "../../../shared/utils/moneyFormat";
 
 const open = defineModel<boolean>("open", { default: false });
 
@@ -42,8 +41,8 @@ const emit = defineEmits<{
 const shouldShowSaldoCard = computed(() => {
   return Boolean(
     props.reservationInitialValues &&
-      props.editingReservationId &&
-      props.reservationInitialValues.active,
+    props.editingReservationId &&
+    props.reservationInitialValues.active,
   );
 });
 

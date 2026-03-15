@@ -9,7 +9,6 @@ import {
   type ResourceDto,
 } from "../../services/resourceService";
 import type { ReservationDto } from "../../../shared/types/reservation";
-import { formatMoney } from "../../../shared/utils/moneyFormat";
 
 const route = useRoute();
 const id = computed(() => String(route.params.id));
