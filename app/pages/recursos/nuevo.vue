@@ -6,6 +6,7 @@ import {
 
 const saving = ref(false);
 const toast = useToast();
+const { showError } = useErrorToast();
 
 async function onSubmit(data: ResourceCreateInput) {
   try {
@@ -17,12 +18,8 @@ async function onSubmit(data: ResourceCreateInput) {
       color: "success",
     });
     await navigateTo(`/recursos/${created.id}`);
-  } catch (err: any) {
-    toast.add({
-      title: "Error",
-      description: err?.data?.message || err?.message || "No se pudo guardar.",
-      color: "error",
-    });
+  } catch (error: unknown) {
+    showError(error, "No se pudo guardar.");
   } finally {
     saving.value = false;
   }

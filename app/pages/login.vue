@@ -18,7 +18,7 @@ const state = reactive<LoginFormState>({
 });
 
 const loading = ref(false);
-const toast = useToast();
+const { showError } = useErrorToast();
 const { fetch: refreshSession } = useUserSession();
 
 async function onSubmit(event: FormSubmitEvent<LoginSchema>) {
@@ -27,16 +27,8 @@ async function onSubmit(event: FormSubmitEvent<LoginSchema>) {
     await loginUser(event.data);
     await refreshSession();
     await navigateTo("/");
-  } catch (error: any) {
-    toast.add({
-      title: "Error",
-      description:
-        error?.data?.statusMessage ||
-        error?.data?.message ||
-        error?.message ||
-        "No se pudo iniciar sesión.",
-      color: "error",
-    });
+  } catch (error: unknown) {
+    showError(error, "No se pudo iniciar sesión.");
   } finally {
     loading.value = false;
   }

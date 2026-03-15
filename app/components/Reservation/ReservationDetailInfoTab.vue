@@ -29,6 +29,7 @@ const emit = defineEmits<{
 }>();
 
 const toast = useToast();
+const { showError } = useErrorToast();
 const saving = ref(false);
 
 watch(
@@ -36,7 +37,7 @@ watch(
   (value) => {
     emit("saving-change", value);
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 async function onSubmit(data: {
@@ -68,12 +69,8 @@ async function onSubmit(data: {
       color: "success",
     });
     emit("saved");
-  } catch (err: any) {
-    toast.add({
-      title: "Error",
-      description: err?.data?.message || err?.message || "No se pudo guardar.",
-      color: "error",
-    });
+  } catch (error: unknown) {
+    showError(error, "No se pudo guardar.");
   } finally {
     saving.value = false;
   }

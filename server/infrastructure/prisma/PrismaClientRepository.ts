@@ -2,10 +2,12 @@ import type { Client } from "../../domain/client/Client";
 import type { Client as PrismaClientModel } from "#prisma-client";
 import type {
   ClientCreateInput,
+  ClientListItemDto,
   ClientUpdateInput,
 } from "../../../shared/types/client";
 import type { ClientRepository } from "../../domain/client/ClientRepository";
 import { prisma } from "../../utils/db";
+import { calculateReservationSaldo } from "../../utils/reservationSaldo";
 
 function toDomainClient(dbClient: PrismaClientModel): Client {
   return {
@@ -28,6 +30,40 @@ export class PrismaClientRepository implements ClientRepository {
     });
 
     return clients.map(toDomainClient);
+  }
+
+  async listWithSaldo(): Promise<ClientListItemDto[]> {
+    const clients = await prisma.client.findMany({
+      orderBy: { last_name: "asc" },
+      include: {
+        reservations: {
+          where: { active: true },
+          select: {
+            price: true,
+            payments: { select: { amount: true } },
+          },
+        },
+      },
+    });
+
+    return clients.map((c) => {
+      const saldo = c.reservations.reduce((acc, r) => {
+        return acc + calculateReservationSaldo(r.price, r.payments);
+      }, 0);
+
+      return {
+        id: c.id,
+        name: c.name,
+        last_name: c.last_name,
+        doc: c.doc,
+        email: c.email,
+        address: c.address,
+        country: c.country,
+        state: c.state,
+        phone: c.phone,
+        saldo,
+      };
+    });
   }
 
   async getById(id: string): Promise<Client | null> {

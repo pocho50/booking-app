@@ -57,6 +57,7 @@ const {
 } = useAsyncData<ClientDto[]>("clients-select", () => listClients());
 
 const toast = useToast();
+const { showError } = useErrorToast();
 
 const clientDrawerOpen = ref(false);
 const creatingClient = ref(false);
@@ -187,12 +188,8 @@ async function onCreateClientSubmit(data: ClientCreateInput) {
       description: "Se guardó correctamente.",
       color: "success",
     });
-  } catch (err: any) {
-    toast.add({
-      title: "Error",
-      description: err?.data?.message || err?.message || "No se pudo guardar.",
-      color: "error",
-    });
+  } catch (error: unknown) {
+    showError(error, "No se pudo guardar.");
   } finally {
     creatingClient.value = false;
   }

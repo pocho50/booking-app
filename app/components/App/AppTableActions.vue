@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
-import { computed } from "vue";
 
 type Props = {
   items: DropdownMenuItem[] | DropdownMenuItem[][];

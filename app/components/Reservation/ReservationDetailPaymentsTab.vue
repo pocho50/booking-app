@@ -24,6 +24,7 @@ const emit = defineEmits<{
 }>();
 
 const toast = useToast();
+const { showError } = useErrorToast();
 
 const reservationIdRef = computed(() => props.reservationId);
 
@@ -86,12 +87,8 @@ async function confirmDelete() {
     });
     paymentToDelete.value = null;
     deleteModalOpen.value = false;
-  } catch (err: any) {
-    toast.add({
-      title: "Error",
-      description: err?.data?.message || err?.message || "No se pudo eliminar.",
-      color: "error",
-    });
+  } catch (error: unknown) {
+    showError(error, "No se pudo eliminar.");
   }
 }
 
@@ -114,12 +111,8 @@ async function onCreate(event: FormSubmitEvent<PaymentFormSchema>) {
     paymentState.date = undefined;
     paymentState.amount = undefined;
     paymentState.observations = undefined;
-  } catch (err: any) {
-    toast.add({
-      title: "Error",
-      description: err?.data?.message || err?.message || "No se pudo agregar.",
-      color: "error",
-    });
+  } catch (error: unknown) {
+    showError(error, "No se pudo agregar.");
   }
 }
 

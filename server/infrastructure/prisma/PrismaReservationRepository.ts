@@ -2,11 +2,13 @@ import type { Reservation } from "../../domain/reservation/Reservation";
 import type { Reservation as PrismaReservation } from "#prisma-client";
 import type {
   ReservationCreateInput,
+  ReservationListItemDto,
   ReservationUpdateInput,
 } from "../../../shared/types/reservation";
 import type { ReservationRepository } from "../../domain/reservation/ReservationRepository";
 import { prisma } from "../../utils/db";
-import { isoDateToLocalDate } from "../../utils/date";
+import { dateToIsoLocal, isoDateToLocalDate } from "../../utils/date";
+import { calculateReservationSaldo } from "../../utils/reservationSaldo";
 
 function toDomainReservation(dbReservation: PrismaReservation): Reservation {
   return {
@@ -23,6 +25,33 @@ function toDomainReservation(dbReservation: PrismaReservation): Reservation {
 }
 
 export class PrismaReservationRepository implements ReservationRepository {
+  async listActiveWithDetails(): Promise<ReservationListItemDto[]> {
+    const reservations = await prisma.reservation.findMany({
+      where: { active: true },
+      orderBy: { start_date: "desc" },
+      include: {
+        client: { select: { name: true, last_name: true } },
+        resource: { select: { name: true } },
+        payments: { select: { amount: true } },
+      },
+    });
+
+    return reservations.map((r) => {
+      return {
+        id: r.id,
+        client: r.client
+          ? `${r.client.name} ${r.client.last_name}`.trim()
+          : "-",
+        resource: r.resource?.name ?? "-",
+        start_date: dateToIsoLocal(r.start_date),
+        end_date: dateToIsoLocal(r.end_date),
+        price: r.price,
+        saldo: calculateReservationSaldo(r.price, r.payments),
+        confirmed: r.confirmed,
+      };
+    });
+  }
+
   async hasOverlap(params: {
     resourceId: string;
     startDate: string;
@@ -89,8 +118,8 @@ export class PrismaReservationRepository implements ReservationRepository {
           data.active === false
             ? null
             : data.id_client === undefined
-            ? undefined
-            : data.id_client,
+              ? undefined
+              : data.id_client,
         observation: data.observation ?? undefined,
         price: data.price,
         confirmed: data.confirmed,

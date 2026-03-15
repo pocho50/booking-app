@@ -1,4 +1,3 @@
-import { computed, ref } from "vue";
 import type {
   CalendarResourceDto,
   CalendarReservationDto,
@@ -33,6 +32,16 @@ type ReservationPaymentsPayload = {
   reservation: CalendarReservationDto;
 };
 
+type ReservationFormInput = {
+  clientId: string | null;
+  start_date: string;
+  end_date: string;
+  observation?: string;
+  price: number;
+  confirmed: boolean;
+  active: boolean;
+};
+
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export function useCalendarReservationDrawer(params: {
@@ -55,6 +64,7 @@ export function useCalendarReservationDrawer(params: {
   const deleting = ref(false);
 
   const toast = useToast();
+  const { showError } = useErrorToast();
 
   const reservationDateLabel = computed(() => {
     if (!selectedReservationIsoDate.value) {
@@ -75,13 +85,12 @@ export function useCalendarReservationDrawer(params: {
 
     const name = `${current.clientFirstName || ""} ${
       current.clientLastName || ""
-    }`
-      .trim()
-      .replace(/^\s+|\s+$/g, "");
+    }`.trim();
 
     return name ? `Pagos • ${name}` : "Pagos";
   });
 
+  // Build an ISO date string from a calendar day click payload.
   function parseIsoFromCalendarClick({
     day,
     month,
@@ -96,8 +105,7 @@ export function useCalendarReservationDrawer(params: {
     );
     selectedReservationResource.value = found ?? null;
 
-    editingReservationId.value = null;
-    reservationInitialValues.value = null;
+    resetReservationEditorState();
     paymentsDrawerOpen.value = false;
 
     selectedReservationIsoDate.value = parseIsoFromCalendarClick(payload);
@@ -128,6 +136,7 @@ export function useCalendarReservationDrawer(params: {
     }
   }
 
+  // Keep payment drawer reservation data synchronized after calendar refreshes.
   function syncPaymentsReservationFromCalendar(
     resources: CalendarResourceDto[],
   ) {
@@ -135,9 +144,10 @@ export function useCalendarReservationDrawer(params: {
       return;
     }
 
-    const reservation = resources
-      .flatMap((resource) => resource.reservations || [])
-      .find((item) => item.id === paymentsReservationId.value);
+    const reservation = findCalendarReservationById(
+      paymentsReservationId.value,
+      resources,
+    );
 
     if (!reservation) {
       return;
@@ -154,15 +164,8 @@ export function useCalendarReservationDrawer(params: {
     };
   }
 
-  async function onReservationSubmit(data: {
-    clientId: string | null;
-    start_date: string;
-    end_date: string;
-    observation?: string;
-    price: number;
-    confirmed: boolean;
-    active: boolean;
-  }) {
+  // Create or update a reservation from drawer form data.
+  async function onReservationSubmit(data: ReservationFormInput) {
     if (!selectedReservationResource.value) {
       return;
     }
@@ -195,22 +198,21 @@ export function useCalendarReservationDrawer(params: {
       });
 
       reservationDrawerOpen.value = false;
-      editingReservationId.value = null;
-      reservationInitialValues.value = null;
+      resetReservationEditorState();
 
       await params.refreshResources();
-    } catch (err: any) {
-      toast.add({
-        title: "Error",
-        description:
-          err?.data?.message || err?.message || "No se pudo guardar.",
-        color: "error",
-      });
+    } catch (error: unknown) {
+      showError(error, "No se pudo guardar.");
     }
   }
 
+  // Close drawer and clear edit state.
   function onReservationCancel() {
     reservationDrawerOpen.value = false;
+    resetReservationEditorState();
+  }
+
+  function resetReservationEditorState() {
     editingReservationId.value = null;
     reservationInitialValues.value = null;
   }
@@ -232,12 +234,16 @@ export function useCalendarReservationDrawer(params: {
     paymentsReservation.value = null;
   }
 
-  function findCalendarReservationById(reservationId: string) {
-    return (params.resources.value || [])
+  function findCalendarReservationById(
+    reservationId: string,
+    resources = params.resources.value,
+  ) {
+    return (resources || [])
       .flatMap((resource) => resource.reservations || [])
       .find((reservation) => reservation.id === reservationId);
   }
 
+  // Open payments drawer by id, enriching passed data with latest calendar data.
   function openPaymentsById(
     reservationId: string,
     reservation?: CalendarReservationDto | null,
@@ -258,6 +264,7 @@ export function useCalendarReservationDrawer(params: {
     paymentsDrawerOpen.value = true;
   }
 
+  // Keep edit form saldo synced with the latest calendar reservation snapshot.
   function syncEditingReservationSaldoFromCalendar(
     resources: CalendarResourceDto[],
   ) {
@@ -265,9 +272,10 @@ export function useCalendarReservationDrawer(params: {
       return;
     }
 
-    const reservation = resources
-      .flatMap((resource) => resource.reservations || [])
-      .find((item) => item.id === editingReservationId.value);
+    const reservation = findCalendarReservationById(
+      editingReservationId.value,
+      resources,
+    );
 
     if (reservation && typeof reservation.saldo === "number") {
       reservationInitialValues.value = {
@@ -295,17 +303,11 @@ export function useCalendarReservationDrawer(params: {
 
       deleteModalOpen.value = false;
       reservationDrawerOpen.value = false;
-      editingReservationId.value = null;
-      reservationInitialValues.value = null;
+      resetReservationEditorState();
 
       await params.refreshResources();
-    } catch (err: any) {
-      toast.add({
-        title: "Error",
-        description:
-          err?.data?.message || err?.message || "No se pudo eliminar.",
-        color: "error",
-      });
+    } catch (error: unknown) {
+      showError(error, "No se pudo eliminar.");
     } finally {
       deleting.value = false;
     }

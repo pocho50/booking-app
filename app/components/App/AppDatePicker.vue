@@ -33,7 +33,7 @@ function isoToDateValue(value?: string): DateValue | null {
 }
 
 function dateValueToIso(
-  value: DateValue | null | undefined
+  value: DateValue | null | undefined,
 ): string | undefined {
   if (!value) {
     return undefined;
@@ -73,11 +73,26 @@ const displayValue = computed(() => {
   return formatIsoDateTo(model.value, props.locale);
 });
 
-function onSelect(value: DateValue | null) {
-  dateValueModel.value = value;
-  if (value) {
+type CalendarRangeValue = {
+  start?: DateValue;
+  end?: DateValue;
+};
+
+type CalendarModelValue =
+  | DateValue
+  | CalendarRangeValue
+  | DateValue[]
+  | null
+  | undefined;
+
+function onSelect(value: CalendarModelValue) {
+  if (value && !Array.isArray(value) && "compare" in value) {
+    dateValueModel.value = value;
     open.value = false;
+    return;
   }
+
+  dateValueModel.value = null;
 }
 </script>
 

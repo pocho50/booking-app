@@ -62,6 +62,7 @@ const saving = ref(false);
 const deleting = ref(false);
 const deleteModalOpen = ref(false);
 const toast = useToast();
+const { showError } = useErrorToast();
 
 const formId = "reservation-detail-form";
 
@@ -95,12 +96,8 @@ async function confirmDelete() {
       color: "success",
     });
     await navigateTo("/reservas");
-  } catch (err: any) {
-    toast.add({
-      title: "Error",
-      description: err?.data?.message || err?.message || "No se pudo eliminar.",
-      color: "error",
-    });
+  } catch (error: unknown) {
+    showError(error, "No se pudo eliminar.");
   } finally {
     deleting.value = false;
     deleteModalOpen.value = false;

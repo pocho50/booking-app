@@ -1,5 +1,3 @@
-import { computed, ref, watch } from "vue";
-
 export function useTableSearchPagination<T>(options: {
   items: { value: T[] };
   searchFields: (item: T) => Array<string | number | null | undefined>;
@@ -37,7 +35,7 @@ export function useTableSearchPagination<T>(options: {
   });
 
   const totalPages = computed(() =>
-    Math.max(1, Math.ceil(filteredItems.value.length / pageSize.value))
+    Math.max(1, Math.ceil(filteredItems.value.length / pageSize.value)),
   );
 
   const paginatedItems = computed(() => {
@@ -50,7 +48,7 @@ export function useTableSearchPagination<T>(options: {
     (n) => ({
       label: String(n),
       value: n,
-    })
+    }),
   );
 
   return {

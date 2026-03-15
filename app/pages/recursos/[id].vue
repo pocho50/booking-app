@@ -17,12 +17,13 @@ const {
   error,
 } = await useAsyncData<ResourceDto>(
   () => `resource-${id.value}`,
-  () => getResource(id.value)
+  () => getResource(id.value),
 );
 
 const saving = ref(false);
 const deleting = ref(false);
 const toast = useToast();
+const { showError } = useErrorToast();
 
 const deleteModalOpen = ref(false);
 
@@ -43,12 +44,8 @@ async function onSubmit(data: ResourceCreateInput) {
       color: "success",
     });
     await refresh();
-  } catch (err: any) {
-    toast.add({
-      title: "Error",
-      description: err?.data?.message || err?.message || "No se pudo guardar.",
-      color: "error",
-    });
+  } catch (error: unknown) {
+    showError(error, "No se pudo guardar.");
   } finally {
     saving.value = false;
   }
@@ -76,12 +73,8 @@ async function confirmDelete() {
       color: "success",
     });
     await navigateTo("/recursos");
-  } catch (err: any) {
-    toast.add({
-      title: "Error",
-      description: err?.data?.message || err?.message || "No se pudo eliminar.",
-      color: "error",
-    });
+  } catch (error: unknown) {
+    showError(error, "No se pudo eliminar.");
   } finally {
     deleting.value = false;
   }

@@ -31,6 +31,7 @@ const {
 });
 
 const toast = useToast();
+const { showError } = useErrorToast();
 
 const deleteModalOpen = ref(false);
 const resourceToDelete = ref<ResourceDto | null>(null);
@@ -98,12 +99,8 @@ async function confirmDelete() {
     await refresh();
     deleteModalOpen.value = false;
     resourceToDelete.value = null;
-  } catch (err: any) {
-    toast.add({
-      title: "Error",
-      description: err?.data?.message || err?.message || "No se pudo eliminar.",
-      color: "error",
-    });
+  } catch (error: unknown) {
+    showError(error, "No se pudo eliminar.");
   } finally {
     deleting.value = false;
   }

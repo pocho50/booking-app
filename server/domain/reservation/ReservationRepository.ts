@@ -1,10 +1,12 @@
 import type { Reservation } from "./Reservation";
 import type {
   ReservationCreateInput,
+  ReservationListItemDto,
   ReservationUpdateInput,
 } from "../../../shared/types/reservation";
 
 export interface ReservationRepository {
+  listActiveWithDetails(): Promise<ReservationListItemDto[]>;
   hasOverlap(params: {
     resourceId: string;
     startDate: string;
