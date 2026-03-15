@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { updateReservation } from "../../services/reservationService";
-import type { ReservationUpdateInput } from "../../../shared/types/reservation";
-import type { ReservationDto } from "../../../shared/types/reservation";
 
 type CalendarResource = {
   id: string | number;

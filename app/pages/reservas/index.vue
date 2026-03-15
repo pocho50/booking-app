@@ -2,7 +2,7 @@
 import { h, resolveComponent } from "vue";
 import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
 import { listReservations } from "../../services/reservationService";
-import type { ReservationListItemDto } from "../../../shared/types/reservation";
+
 import { useTableSearchPagination } from "../../composables/useTableSearchPagination";
 
 const UBadge = resolveComponent("UBadge");

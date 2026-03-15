@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
-import type { ClientCreateInput } from "../../../shared/types/client";
 import {
   clientCreateSchema,
   type ClientCreateSchema,
-} from "../../../shared/schemas/client";
+} from "~~/shared/schemas/client";
 
 type Schema = ClientCreateSchema;
 
@@ -53,7 +52,7 @@ watch(
     state.state = values?.state;
     state.phone = values?.phone;
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 function onSubmit(event: FormSubmitEvent<Schema>) {

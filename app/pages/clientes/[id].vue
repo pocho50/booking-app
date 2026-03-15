@@ -4,7 +4,6 @@ import {
   updateClient,
   type ClientDto,
 } from "../../services/clientService";
-import type { ClientCreateInput } from "../../../shared/types/client";
 
 const route = useRoute();
 const id = computed(() => String(route.params.id));

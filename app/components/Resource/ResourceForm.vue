@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
-import type { ResourceCreateInput } from "../../../shared/types/resource";
 import {
   resourceCreateSchema,
   type ResourceCreateSchema,
-} from "../../../shared/schemas/resource";
+} from "~~/shared/schemas/resource";
 
 type Schema = ResourceCreateSchema;
 
@@ -37,7 +36,7 @@ watch(
     state.name = values?.name;
     state.description = values?.description;
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 function onSubmit(event: FormSubmitEvent<Schema>) {

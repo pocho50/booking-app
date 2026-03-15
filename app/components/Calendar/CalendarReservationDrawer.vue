@@ -1,10 +1,4 @@
 <script setup lang="ts">
-import type {
-  CalendarReservationDto,
-  CalendarResourceDto,
-} from "../../../shared/types/calendar";
-import type { ReservationDto } from "../../../shared/types/reservation";
-
 const open = defineModel<boolean>("open", { default: false });
 
 type Props = {

@@ -3,8 +3,7 @@ import type { FormSubmitEvent } from "@nuxt/ui";
 import {
   reservationCreateFormSchema,
   type ReservationCreateFormSchema,
-} from "../../../shared/schemas/reservation";
-import type { ReservationDto } from "../../../shared/types/reservation";
+} from "~~/shared/schemas/reservation";
 import {
   createClient,
   type ClientCreateInput,

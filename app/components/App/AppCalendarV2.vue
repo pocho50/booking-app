@@ -1,9 +1,4 @@
 <script setup lang="ts">
-import type {
-  CalendarReservationDto,
-  CalendarResourceDto,
-} from "../../../shared/types/calendar";
-
 type CalendarReservation = CalendarReservationDto & {
   _idx?: number;
 };

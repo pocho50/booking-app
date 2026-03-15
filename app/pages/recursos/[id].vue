@@ -5,7 +5,6 @@ import {
   updateResource,
   type ResourceDto,
 } from "../../services/resourceService";
-import type { ResourceCreateInput } from "../../../shared/types/resource";
 
 const route = useRoute();
 const id = computed(() => String(route.params.id));

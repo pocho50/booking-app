@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { DateValue } from "@internationalized/date";
 import { parseDate } from "@internationalized/date";
-import { formatIsoDateTo } from "../../../shared/utils/dateFormat";
 
 type Props = {
   placeholder?: string;

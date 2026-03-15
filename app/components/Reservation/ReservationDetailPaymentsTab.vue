@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, FormSubmitEvent, TableColumn } from "@nuxt/ui";
 import { h, resolveComponent } from "vue";
-import type {
-  PaymentCreateForReservationInput,
-  PaymentDto,
-} from "../../../shared/types/payment";
 import {
   paymentCreateForReservationSchema,
   type PaymentCreateSchema,
-} from "../../../shared/schemas/payment";
+} from "~~/shared/schemas/payment";
 
 type Props = {
   reservationId: string;
