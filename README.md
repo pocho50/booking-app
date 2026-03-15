@@ -1,4 +1,4 @@
-# Reservation App
+# Booking App
 
 Nuxt 4 reservation management app with a calendar UI, payments tracking, and an AI assistant chat that can query the database and generate charts/exports or send reports by email.
 
