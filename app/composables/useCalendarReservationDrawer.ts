@@ -1,342 +1,66 @@
-import type {
-  CalendarResourceDto,
-  CalendarReservationDto,
-} from "../../shared/types/calendar";
-import type {
-  ReservationCreateInput,
-  ReservationDto,
-  ReservationUpdateInput,
-} from "../../shared/types/reservation";
-import { formatIsoDateTo } from "../../shared/utils/dateFormat";
-import {
-  createReservation,
-  deleteReservation,
-  getReservation,
-  updateReservation,
-} from "../services/reservationService";
-
-type AvailableDayClickPayload = {
-  resourceId: string | number;
-  day: number;
-  month: number;
-  year: number;
-};
-
-type ReservationEditPayload = {
-  reservationId: string | null;
-  resourceId: string;
-};
-
-type ReservationPaymentsPayload = {
-  reservationId: string | null;
-  reservation: CalendarReservationDto;
-};
-
-type ReservationFormInput = {
-  clientId: string | null;
-  start_date: string;
-  end_date: string;
-  observation?: string;
-  price: number;
-  confirmed: boolean;
-  active: boolean;
-};
-
-const pad = (n: number) => String(n).padStart(2, "0");
+import type { CalendarResourceDto } from "../../shared/types/calendar";
+import { useReservationEditorDrawer } from "./useReservationEditorDrawer";
+import { usePaymentsDrawer } from "./usePaymentsDrawer";
+import { useReservationDelete } from "./useReservationDelete";
 
 export function useCalendarReservationDrawer(params: {
   resources: { value: CalendarResourceDto[] };
   refreshResources: () => Promise<unknown>;
 }) {
-  const reservationDrawerOpen = ref(false);
-  const selectedReservationResource = ref<CalendarResourceDto | null>(null);
-  const selectedReservationIsoDate = ref<string | null>(null);
-
-  const editingReservationId = ref<string | null>(null);
-  const reservationInitialValues = ref<ReservationDto | null>(null);
-  const reservationLoading = ref(false);
-
-  const paymentsDrawerOpen = ref(false);
-  const paymentsReservationId = ref<string | null>(null);
-  const paymentsReservation = ref<CalendarReservationDto | null>(null);
-
-  const deleteModalOpen = ref(false);
-  const deleting = ref(false);
-
-  const toast = useToast();
-  const { showError } = useErrorToast();
-
-  const reservationDateLabel = computed(() => {
-    if (!selectedReservationIsoDate.value) {
-      return undefined;
-    }
-    return formatIsoDateTo(selectedReservationIsoDate.value);
+  const editor = useReservationEditorDrawer(params);
+  const payments = usePaymentsDrawer(params);
+  const deletion = useReservationDelete({
+    getEditingId: () => editor.editingId.value,
+    closeDrawer: () => {
+      editor.drawerOpen.value = false;
+    },
+    resetEditorState: editor.resetState,
+    refreshResources: params.refreshResources,
   });
 
-  const drawerTitle = computed(() =>
-    editingReservationId.value ? "Editar reserva" : "Nueva reserva",
-  );
-
-  const paymentsDrawerTitle = computed(() => {
-    const current = paymentsReservation.value;
-    if (!current) {
-      return "Pagos";
-    }
-
-    const name = `${current.clientFirstName || ""} ${
-      current.clientLastName || ""
-    }`.trim();
-
-    return name ? `Pagos • ${name}` : "Pagos";
-  });
-
-  // Build an ISO date string from a calendar day click payload.
-  function parseIsoFromCalendarClick({
-    day,
-    month,
-    year,
-  }: AvailableDayClickPayload) {
-    return `${year}-${pad(month)}-${pad(day)}`;
-  }
-
-  function onAvailableDayClick(payload: AvailableDayClickPayload) {
-    const found = (params.resources.value || []).find(
-      (r) => String(r.id) === String(payload.resourceId),
-    );
-    selectedReservationResource.value = found ?? null;
-
-    resetReservationEditorState();
-    paymentsDrawerOpen.value = false;
-
-    selectedReservationIsoDate.value = parseIsoFromCalendarClick(payload);
-    reservationDrawerOpen.value = true;
-  }
-
-  async function onReservationEdit(payload: ReservationEditPayload) {
-    if (!payload.reservationId) {
-      return;
-    }
-
-    const found = (params.resources.value || []).find(
-      (r) => String(r.id) === String(payload.resourceId),
-    );
-    selectedReservationResource.value = found ?? null;
-
-    editingReservationId.value = payload.reservationId;
-    paymentsDrawerOpen.value = false;
-    reservationDrawerOpen.value = true;
-    reservationLoading.value = true;
-
-    try {
-      const reservation = await getReservation(payload.reservationId);
-      reservationInitialValues.value = reservation;
-      selectedReservationIsoDate.value = reservation.start_date;
-    } finally {
-      reservationLoading.value = false;
-    }
-  }
-
-  // Keep payment drawer reservation data synchronized after calendar refreshes.
-  function syncPaymentsReservationFromCalendar(
-    resources: CalendarResourceDto[],
+  // Close the payments drawer when opening the reservation editor.
+  function onAvailableDayClick(
+    ...args: Parameters<typeof editor.onAvailableDayClick>
   ) {
-    if (!paymentsReservationId.value) {
-      return;
-    }
-
-    const reservation = findCalendarReservationById(
-      paymentsReservationId.value,
-      resources,
-    );
-
-    if (!reservation) {
-      return;
-    }
-
-    paymentsReservation.value = {
-      ...paymentsReservation.value,
-      ...reservation,
-      clientFirstName:
-        paymentsReservation.value?.clientFirstName ??
-        reservation.clientFirstName,
-      clientLastName:
-        paymentsReservation.value?.clientLastName ?? reservation.clientLastName,
-    };
+    payments.drawerOpen.value = false;
+    editor.onAvailableDayClick(...args);
   }
 
-  // Create or update a reservation from drawer form data.
-  async function onReservationSubmit(data: ReservationFormInput) {
-    if (!selectedReservationResource.value) {
-      return;
-    }
-
-    try {
-      const payload: ReservationCreateInput = {
-        start_date: data.start_date,
-        end_date: data.end_date,
-        id_resource: String(selectedReservationResource.value.id),
-        id_client: data.active ? data.clientId : null,
-        observation: data.observation,
-        price: data.price,
-        confirmed: data.confirmed,
-        active: data.active,
-      };
-
-      if (editingReservationId.value) {
-        const updatePayload: ReservationUpdateInput = payload;
-        await updateReservation(editingReservationId.value, updatePayload);
-      } else {
-        await createReservation(payload);
-      }
-
-      toast.add({
-        title: "Reserva",
-        description: data.active
-          ? `Guardada • ${data.start_date} → ${data.end_date}`
-          : `Bloqueo guardado • ${data.start_date} → ${data.end_date}`,
-        color: "success",
-      });
-
-      reservationDrawerOpen.value = false;
-      resetReservationEditorState();
-
-      await params.refreshResources();
-    } catch (error: unknown) {
-      showError(error, "No se pudo guardar.");
-    }
+  async function onReservationEdit(...args: Parameters<typeof editor.onEdit>) {
+    payments.drawerOpen.value = false;
+    await editor.onEdit(...args);
   }
 
-  // Close drawer and clear edit state.
-  function onReservationCancel() {
-    reservationDrawerOpen.value = false;
-    resetReservationEditorState();
-  }
-
-  function resetReservationEditorState() {
-    editingReservationId.value = null;
-    reservationInitialValues.value = null;
-  }
-
-  function onReservationPayments(payload: ReservationPaymentsPayload) {
-    if (!payload.reservationId) {
-      return;
-    }
-
-    paymentsReservationId.value = payload.reservationId;
-    paymentsReservation.value = payload.reservation;
-    reservationDrawerOpen.value = false;
-    paymentsDrawerOpen.value = true;
-  }
-
-  function onPaymentsDrawerClose() {
-    paymentsDrawerOpen.value = false;
-    paymentsReservationId.value = null;
-    paymentsReservation.value = null;
-  }
-
-  function findCalendarReservationById(
-    reservationId: string,
-    resources = params.resources.value,
-  ) {
-    return (resources || [])
-      .flatMap((resource) => resource.reservations || [])
-      .find((reservation) => reservation.id === reservationId);
-  }
-
-  // Open payments drawer by id, enriching passed data with latest calendar data.
-  function openPaymentsById(
-    reservationId: string,
-    reservation?: CalendarReservationDto | null,
-  ) {
-    const fallback = findCalendarReservationById(reservationId);
-    const mergedReservation = reservation
-      ? {
-          ...fallback,
-          ...reservation,
-          clientFirstName:
-            reservation.clientFirstName ?? fallback?.clientFirstName,
-          clientLastName:
-            reservation.clientLastName ?? fallback?.clientLastName,
-        }
-      : (fallback ?? null);
-    paymentsReservationId.value = reservationId;
-    paymentsReservation.value = mergedReservation;
-    paymentsDrawerOpen.value = true;
-  }
-
-  // Keep edit form saldo synced with the latest calendar reservation snapshot.
-  function syncEditingReservationSaldoFromCalendar(
-    resources: CalendarResourceDto[],
-  ) {
-    if (!editingReservationId.value || !reservationInitialValues.value) {
-      return;
-    }
-
-    const reservation = findCalendarReservationById(
-      editingReservationId.value,
-      resources,
-    );
-
-    if (reservation && typeof reservation.saldo === "number") {
-      reservationInitialValues.value = {
-        ...reservationInitialValues.value,
-        saldo: reservation.saldo,
-      };
-    }
-  }
-
-  async function confirmDeleteReservation() {
-    if (!editingReservationId.value) {
-      deleteModalOpen.value = false;
-      return;
-    }
-
-    try {
-      deleting.value = true;
-      await deleteReservation(editingReservationId.value);
-
-      toast.add({
-        title: "Reserva",
-        description: "Eliminada correctamente.",
-        color: "success",
-      });
-
-      deleteModalOpen.value = false;
-      reservationDrawerOpen.value = false;
-      resetReservationEditorState();
-
-      await params.refreshResources();
-    } catch (error: unknown) {
-      showError(error, "No se pudo eliminar.");
-    } finally {
-      deleting.value = false;
-    }
+  // Close the reservation drawer when opening the payments drawer.
+  function onReservationPayments(...args: Parameters<typeof payments.onOpen>) {
+    editor.drawerOpen.value = false;
+    payments.onOpen(...args);
   }
 
   return {
-    reservationDrawerOpen,
-    selectedReservationResource,
-    selectedReservationIsoDate,
-    editingReservationId,
-    reservationInitialValues,
-    reservationLoading,
-    paymentsDrawerOpen,
-    paymentsReservationId,
-    paymentsReservation,
-    deleteModalOpen,
-    deleting,
-    reservationDateLabel,
-    drawerTitle,
-    paymentsDrawerTitle,
+    reservationDrawerOpen: editor.drawerOpen,
+    selectedReservationResource: editor.selectedResource,
+    selectedReservationIsoDate: editor.selectedIsoDate,
+    editingReservationId: editor.editingId,
+    reservationInitialValues: editor.initialValues,
+    reservationLoading: editor.loading,
+    paymentsDrawerOpen: payments.drawerOpen,
+    paymentsReservationId: payments.reservationId,
+    paymentsReservation: payments.reservation,
+    deleteModalOpen: deletion.modalOpen,
+    deleting: deletion.deleting,
+    reservationDateLabel: editor.dateLabel,
+    drawerTitle: editor.title,
+    paymentsDrawerTitle: payments.title,
     onAvailableDayClick,
     onReservationEdit,
     onReservationPayments,
-    onReservationSubmit,
-    onReservationCancel,
-    onPaymentsDrawerClose,
-    openPaymentsById,
-    syncEditingReservationSaldoFromCalendar,
-    syncPaymentsReservationFromCalendar,
-    confirmDeleteReservation,
+    onReservationSubmit: editor.onSubmit,
+    onReservationCancel: editor.onCancel,
+    onPaymentsDrawerClose: payments.onClose,
+    openPaymentsById: payments.openById,
+    syncEditingReservationSaldoFromCalendar: editor.syncSaldoFromCalendar,
+    syncPaymentsReservationFromCalendar: payments.syncFromCalendar,
+    confirmDeleteReservation: deletion.confirm,
   };
 }
