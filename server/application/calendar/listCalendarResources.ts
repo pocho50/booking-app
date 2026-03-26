@@ -1,7 +1,5 @@
-import type {
-  CalendarRepository,
-  CalendarResource,
-} from "../../domain/calendar/CalendarRepository";
+import type { CalendarRepository } from "../../domain/calendar/CalendarRepository";
+import type { CalendarResourceDto } from "../../../shared/types/calendar";
 
 export async function listCalendarResources(
   calendarRepository: CalendarRepository,
@@ -9,6 +7,6 @@ export async function listCalendarResources(
     month: number;
     year: number;
   }
-): Promise<CalendarResource[]> {
+): Promise<CalendarResourceDto[]> {
   return calendarRepository.listResourcesWithReservations(params);
 }

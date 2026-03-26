@@ -1,13 +1,5 @@
-import {
-  streamText,
-  UIMessage,
-  convertToModelMessages,
-  createGateway,
-  stepCountIs,
-  tool,
-  zodSchema,
-  wrapLanguageModel,
-} from "ai";
+import { streamText, convertToModelMessages, createGateway, stepCountIs, tool, zodSchema, wrapLanguageModel } from "ai";
+import type { UIMessage } from "ai";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
