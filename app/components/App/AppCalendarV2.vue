@@ -444,7 +444,9 @@ function getReservationButtonUi(reservation: CalendarReservation) {
       <table class="w-full border-collapse bg-default text-sm text-default">
         <thead class="sticky top-0 z-10 bg-elevated/60">
           <tr>
-            <th class="min-w-56 border border-default px-2 py-2 text-left">
+            <th
+              class="sticky left-0 z-20 min-w-56 border border-default bg-elevated px-2 py-2 text-left"
+            >
               Recursos
             </th>
             <th
@@ -457,7 +459,7 @@ function getReservationButtonUi(reservation: CalendarReservation) {
           </tr>
           <tr>
             <th
-              class="border border-default px-2 py-1 text-left text-xs text-muted"
+              class="sticky left-0 z-20 border border-default bg-elevated px-2 py-1 text-left text-xs text-muted"
             >
               &nbsp;
             </th>
@@ -473,7 +475,9 @@ function getReservationButtonUi(reservation: CalendarReservation) {
 
         <tbody>
           <tr v-for="resource in resourcesWithGrid" :key="resource.id">
-            <td class="border border-default px-2 py-2 font-semibold">
+            <td
+              class="sticky left-0 z-5 border border-default bg-default px-2 py-2 font-semibold"
+            >
               {{ resource.name }}
             </td>
 
