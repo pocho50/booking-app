@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { clear } = useUserSession();
+const { items } = useNavItems();
 
 const loading = ref(false);
 
@@ -20,7 +21,7 @@ async function onLogout() {
 
 <template>
   <UApp>
-    <UHeader>
+    <UHeader mode="drawer">
       <template #left>
         <NuxtLink to="/">
           <AppLogo class="shrink-0" />
@@ -28,9 +29,29 @@ async function onLogout() {
       </template>
 
       <template #right>
-        <AppNav />
+        <AppNav class="hidden lg:flex" />
         <UButton
           size="xs"
+          color="neutral"
+          variant="ghost"
+          :loading="loading"
+          :disabled="loading"
+          icon="i-lucide-log-out"
+          class="hidden lg:inline-flex"
+          @click="onLogout"
+        >
+          Salir
+        </UButton>
+        <UColorModeButton />
+      </template>
+
+      <template #body>
+        <UNavigationMenu :items="items" orientation="vertical" class="w-full" />
+
+        <USeparator class="my-4" />
+
+        <UButton
+          block
           color="neutral"
           variant="ghost"
           :loading="loading"
@@ -40,7 +61,6 @@ async function onLogout() {
         >
           Salir
         </UButton>
-        <UColorModeButton />
       </template>
     </UHeader>
 

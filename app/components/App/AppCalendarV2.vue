@@ -445,7 +445,7 @@ function getReservationButtonUi(reservation: CalendarReservation) {
         <thead class="sticky top-0 z-10 bg-elevated/60">
           <tr>
             <th class="min-w-56 border border-default px-2 py-2 text-left">
-              Resource
+              Recursos
             </th>
             <th
               v-for="d in days"
