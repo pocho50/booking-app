@@ -12,6 +12,7 @@ import { chartBarTool } from "../../shared/utils/tools/chartBarTool";
 import { chartDonutTool } from "../../shared/utils/tools/chartDonutTool";
 import { exportFileTool } from "../../shared/utils/tools/exportFileTool";
 import { sendEmailTool } from "../../shared/utils/tools/sendEmailTool";
+import { clientBalanceTool } from "../../shared/utils/tools/clientBalanceTool";
 
 export default defineLazyEventHandler(async () => {
   const apiKey = useRuntimeConfig().aiGatewayApiKey;
@@ -27,7 +28,7 @@ export default defineLazyEventHandler(async () => {
   );
 
   const model = wrapLanguageModel({
-    model: gateway("anthropic/claude-opus-4.5"),
+    model: gateway("moonshotai/kimi-k2.5"),
     middleware: devToolsMiddleware(),
   });
 
@@ -105,6 +106,7 @@ If you generate HTML, make sure it is readable in both light mode and dark mode 
         chartDonutTool,
         exportFileTool,
         sendEmailTool,
+        clientBalanceTool,
       },
     });
 
