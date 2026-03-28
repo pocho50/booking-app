@@ -28,11 +28,13 @@ export default defineLazyEventHandler(async () => {
   );
 
   const model = wrapLanguageModel({
-    model: gateway("moonshotai/kimi-k2.5"),
+    model: gateway("anthropic/claude-haiku-4.5"),
     middleware: devToolsMiddleware(),
   });
 
   return defineEventHandler(async (event) => {
+    const session = await requireUserSession(event);
+    const isAdmin = session.user.role === "ADMIN";
     const { messages }: { messages: UIMessage[] } = await readBody(event);
 
     const result = streamText({
@@ -61,6 +63,7 @@ You can return the information in whatever way you consider clearest:
 
 If you generate HTML, make sure it is readable in both light mode and dark mode (avoid hardcoded colors; prefer neutral styling).
 
+${!isAdmin ? "\nIMPORTANT: The current user does NOT have administrator privileges. If they ask to send an email, politely explain that only administrators can send emails.\n" : ""}
 ⚠️ Just make sure the data is correct, and if you generate HTML, it must be safe`,
       messages: await convertToModelMessages(messages),
       stopWhen: stepCountIs(8),
@@ -69,7 +72,7 @@ If you generate HTML, make sure it is readable in both light mode and dark mode 
           toolCalls: step.toolCalls.length,
           toolResults: step.toolResults.length,
           finishReason: step.finishReason,
-          toolCall: step.toolCalls.map((tool) => tool.type).join("--"),
+          toolCall: step.toolCalls.map((tc) => tc?.type).join("--"),
         });
       },
       onError: (error) => {
@@ -105,7 +108,7 @@ If you generate HTML, make sure it is readable in both light mode and dark mode 
         chartBarTool,
         chartDonutTool,
         exportFileTool,
-        sendEmailTool,
+        ...(isAdmin ? { sendEmailTool } : {}),
         clientBalanceTool,
       },
     });
