@@ -13,8 +13,8 @@ type LoginFormState = {
 };
 
 const state = reactive<LoginFormState>({
-  username: "",
-  password: "",
+  username: "test@test.com",
+  password: "Test123456",
 });
 
 const loading = ref(false);
