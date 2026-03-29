@@ -42,6 +42,7 @@ export default defineLazyEventHandler(async () => {
       system: `You have the following data in the database (or Prisma schema) ${schema}
 
 Generate a safe SQL SELECT query that answers the user's question.
+CRITICAL RULE - NO EXCEPTIONS: You are FORBIDDEN from doing mental math. NEVER calculate totals, sums, averages, or any arithmetic in your head or in your response text. ALWAYS use SQL aggregate functions: SUM(), COUNT(), AVG(), MAX(), MIN(). The numbers shown to the user MUST come directly from a SQL query result.
 You can only run SELECT queries; you cannot run INSERT, UPDATE, DELETE, DROP, ALTER, TRUNCATE, CREATE.
 You cannot query the users table.
 Keep in mind that inactive reservations (active = false) are not reservations, but disabled days for making reservations.
@@ -50,10 +51,11 @@ Before executing, review the SQL as if you were a senior reviewer:
 - Does it really answer the question?
 - Are there logical errors or duplications?
 - Could it return incorrect data?
+- CRITICAL: If showing totals/averages/aggregates, did you use SQL functions (SUM, COUNT, AVG) or did you mistakenly calculate mentally? Fix it if you calculated mentally.
 If you detect issues, fix the SQL before executing it.
 You can run more than one SQL query if you need to validate or correct the result.
 If the tool returns an error, fix the SQL and retry (maximum 2 retries).
-Use the executeSql tool to run the query and then respond using the result.
+Use the executeSql tool to run the query and then respond using ONLY the result returned by the tool. All numbers must come from the SQL query, never from your own calculations.
 
 You can return the information in whatever way you consider clearest:
 - An HTML table
@@ -80,7 +82,7 @@ ${!isAdmin ? "\nIMPORTANT: The current user does NOT have administrator privileg
       },
       tools: {
         executeSql: tool({
-          description: "Executes a SELECT query in the database",
+          description: "Executes a SELECT query in the database. Use SQL aggregate functions (SUM, COUNT, AVG, etc.) for all calculations. Never calculate manually.",
           inputSchema: zodSchema(
             z.object({
               sql: z.string().min(1),
