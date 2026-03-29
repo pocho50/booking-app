@@ -2,6 +2,10 @@
 
 Nuxt 4 reservation management app with a calendar UI, payments tracking, and an AI assistant chat that can query the database and generate charts/exports or send reports by email.
 
+
+
+<video src="https://github.com/user-attachments/assets/4f8db808-dbf6-4956-8796-2e529a927f04" controls autoplay muted loop width="100%"></video>
+
 ## Disclaimer (demo/educational only)
 
 This repository is provided **for demonstration and educational purposes only**.
